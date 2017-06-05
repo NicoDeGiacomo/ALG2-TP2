@@ -3,11 +3,18 @@
 #include <stdlib.h>
 #include <string.h>
 #include "lista.h"
+#include "CountingFilters.h"
 
 #define TAMANIO_INICIAL 1009
 #define REDIM_MAX 0.7
 #define REDIM_MIN 0.25
 #define COEF_REDIM 2
+
+/*AUXILIARES*/
+
+size_t FiletitoALaJenkins(const char* key, size_t length, size_t max_size);
+lista_t** crear_tabla(size_t tam);
+void destruir_tabla(filet_t* filet);
 
 struct filet {
     size_t cantidad;
@@ -39,22 +46,22 @@ void filete_borrar(filet_t* filet) {
 
 //TODO: Implement me!
 bool agregar_filtro(filet_t* filet, const char* clave) {
-	
+	return true;
 }
 
 //TODO: Implement me!
 bool aumentar_filtro(filet_t* filet, const char* clave) {
-	
+	return true;
 }
 
 //TODO: Implement me!
 size_t ver_valor_filtro(filet_t* filet, const char* clave) {
-	
+	return 0;
 }
 
 //TODO: Implement me!
-bool aumentar_filtro(filet_t* filet, const char* clave) {
-	
+bool filtro_existe(filet_t* filet, const char* clave) {
+	return true;
 }
 
 /* FUNCIONES AUXILIARES */
@@ -72,6 +79,16 @@ size_t FiletitoALaJenkins(const char* key, size_t length, size_t max_size) {
     hash += hash << 3;
     hash ^= hash >> 11;
     hash += hash << 15;
+    return hash % max_size;
+}
+
+//Funcion de Hashing Nachito
+size_t NachitoConFritas(const char* key, size_t max_size) {
+    size_t hash = 0;
+    
+	for(hash = 0; *key != '\0'; key++)
+		hash = *key + TAMANIO_INICIAL * hash;
+	
     return hash % max_size;
 }
 
