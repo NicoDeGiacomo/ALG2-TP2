@@ -34,6 +34,12 @@ char** obtener_lineas(FILE* file, size_t n) {
 }
 
 
+filter_result_t *filter_result_crear(const char *key, size_t value) {
+    filter_result_t* filter_result = malloc(sizeof(filter_result_t));
+    filter_result->key = key;
+    filter_result->value = value;
+}
+
 int procesar_tweets(size_t n, size_t k){
     char** lineas = obtener_lineas(stdin, n);
 
