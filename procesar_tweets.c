@@ -78,6 +78,7 @@ int procesar_tweets(size_t n, size_t k){
 			filter_result_t* buffer = heap_desencolar(heap);
 			filter_result_t* result = filter_result_crear(lineas[i], counting_filter_obtener(filter, lineas[i]));
 			heap_encolar(heap, result);
+			free(buffer);
 		}
     }
     //En el heap quedan los k mayores.
