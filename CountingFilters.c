@@ -63,6 +63,12 @@ void counting_filter_aumentar(counting_filter_t* counting_filter, const char* ke
     return;
 }
 
+void counting_filter_aumentar_arr(counting_filter_t* counting_filter, const char** key, size_t size){
+    for (size_t i = 0; i < size; ++i) {
+        counting_filter_aumentar(counting_filter, key[i]);
+    }
+}
+
 size_t counting_filter_obtener(counting_filter_t* counting_filter, const char* key) {
     size_t one = counting_filter->tabla1[jenkins_hash(key, strlen(key), counting_filter->tam)];
     size_t two = counting_filter->tabla2[prime_hash(key, counting_filter->tam)];

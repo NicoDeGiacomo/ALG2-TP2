@@ -17,10 +17,13 @@ counting_filter_t* counting_filter_crear(size_t size);
 //Borra un CountingFilet
 void counting_filter_destruir(counting_filter_t* counting_filter);
 
-//Aumentar filtro -> Agrega el filtro si no existe -> Aumenta en todos los x arrays el valor del filtro en 1
+//Aumentar filtro -> Aumenta en 1 el filtro
 void counting_filter_aumentar(counting_filter_t* counting_filter, const char* key);
 
 //Ver valor del filtro -> Devuelve el valor minimo de los x arrays para el filtro
 size_t counting_filter_obtener(counting_filter_t* counting_filter, const char* key);
+
+//Aumentar filtros -> Aumenta en 1 todos los filtros
+void counting_filter_aumentar_arr(counting_filter_t* counting_filter, const char** key, size_t size);
 
 #endif // COUNTINGFILTERS_H
