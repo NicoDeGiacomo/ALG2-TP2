@@ -24,10 +24,12 @@ int filter_result_cmp(const void *a, const void *b) {
 }
 
 
-//Obtiene n lineas del archivo
+//Obtiene n lineas del archivo, y para si llegó al eof
 char** obtener_lineas(FILE* file, size_t n) {
     char** var = malloc(sizeof(char*) * n);
     for (size_t i = 0; i < n; ++i) {
+		if(feof(file))
+			break;
         fscanf(file, var[i]);
     }
     return var;
@@ -48,19 +50,35 @@ int procesar_tweets(size_t n, size_t k){
         fprintf(stderr, "Unexpected error.\n");
         return 1;
     }
-    //TODO: caso de error
+	
     heap_t* heap = heap_crear(filter_result_cmp);
-
+	if(!heap) {
+		counting_filter_destruir(filter);
+		fprintf(stderr, "Unexpected error.\n");
+        return 2;
+	}
+	
     counting_filter_aumentar_arr(filter, (const char **) lineas, n);
 
     for (size_t i = 0; i < k; ++i){
-        //TODO: caso de error
-        filter_result_t* result = filter_result_crear(lineas[i], counting_filter_obtener(filter, lineas[i]));
+		
+        if(!filter_result_t* result = filter_result_crear(lineas[i], counting_filter_obtener(filter, lineas[i]))) {
+			counting_filter_destruir(filter);
+			heap_destruir(heap, free);
+			fprintf(stderr, "Unexpected error.\n");
+			return 3;			
+		}
+		
         heap_encolar(heap, result);
     }
 
     for (size_t i = k; i < n; ++i){
-        //Agregar al heap si es mayor que el tope
+		
+		if(filter_result_cmp(lineas[i], heap_ver_max(heap)) == -1) {
+			filter_result_t* buffer = heap_desencolar(heap);
+			filter_result_t* result = filter_result_crear(lineas[i], counting_filter_obtener(filter, lineas[i]));
+			heap_encolar(heap, result);
+		}
     }
     //En el heap quedan los k mayores.
 }
