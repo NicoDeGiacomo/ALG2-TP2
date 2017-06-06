@@ -58,6 +58,8 @@ int procesar_tweets(size_t n, size_t k){
         return 2;
 	}
 	
+	//TODO: Hay que procesar los hashtags individuales, no las líneas. (Contar comas y listo)
+	
     counting_filter_aumentar_arr(filter, (const char **) lineas, n);
 
     for (size_t i = 0; i < k; ++i){
@@ -81,7 +83,8 @@ int procesar_tweets(size_t n, size_t k){
 			free(buffer);
 		}
     }
-    //En el heap quedan los k mayores.
+	
+    //TODO: Devolver los k trending hashtags.
 }
 
 int main(int argc, char const *argv[]){
