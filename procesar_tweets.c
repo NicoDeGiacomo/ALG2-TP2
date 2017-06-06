@@ -22,7 +22,15 @@ int procesar_tweets(size_t n, size_t k){
 
     counting_filter_aumentar_arr(filter, (const char **) lineas, n);
 
-    //Falta traer los k mayores -> Hay que buscar clave por clave el valor y usar la tactica del heap magico euclidico
+    for (size_t i = 0; i < k; ++i){
+        counting_filter_obtener(filter, lineas[i]);
+        //Agregar al heap (de minimos)
+    }
+
+    for (size_t i = k; i < n; ++i){
+        //Agregar al heap si es mayor que el tope
+    }
+    //En el heap quedan los k mayores.
 }
 
 int main(int argc, char const *argv[]){
