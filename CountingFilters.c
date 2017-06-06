@@ -1,74 +1,77 @@
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "lista.h"
 #include "CountingFilters.h"
 
-#define TAMANIO_INICIAL 1009
-#define REDIM_MAX 0.7
-#define REDIM_MIN 0.25
-#define COEF_REDIM 2
+#define PRIME_NUMBER 1009
+
+//TODO: TESTs al tda bloom filters?
+//NOTA: Para redimensionar habria que re-hashear (no se puede) -- Concusion: No se redimensiona
+//Le vamos a pasar 'n' al crearlo y listo
+
+
+/*ESTRUCTURAS*/
+
+struct counting_filter{
+    size_t* tabla1;
+    size_t* tabla2;
+    size_t tam;
+};
+
 
 /*AUXILIARES*/
 
-size_t FiletitoALaJenkins(const char* key, size_t length, size_t max_size);
-lista_t** crear_tabla(size_t tam);
-void destruir_tabla(filet_t* filet);
+size_t jenkins_hash(const char *key, size_t length, size_t max_size);
+size_t prime_hash(const char *key, size_t max_size);
 
-struct filet {
-    size_t cantidad;
-    size_t tam;
-    lista_t** tabla;
-};
 
-filet_t* crear_filete(void) {
-	filet_t* filet = malloc(sizeof(filet_t));
-	if(!filet)
+/*PRIMITIVAS*/
+
+counting_filter_t* counting_filter_crear(size_t size){
+    counting_filter_t* counting_filter = malloc(sizeof(counting_filter_t));
+    if(!counting_filter)
         return NULL;
 
-	filet->cantidad = 0;
-    filet->tam = TAMANIO_INICIAL;
-
-    filet->tabla = crear_tabla(TAMANIO_INICIAL);
-    if(!filet->tabla){
-        free(filet);
+    counting_filter->tabla1 = calloc(size, sizeof(size_t));
+    if(!counting_filter->tabla1){
+        free(counting_filter);
         return NULL;
     }
-	
-    return filet;
+
+    counting_filter->tabla2 = calloc(size, sizeof(size_t));
+    if(!counting_filter->tabla2){
+        free(counting_filter->tabla1);
+        free(counting_filter);
+        return NULL;
+    }
+
+    counting_filter->tam = size;
+
+    return counting_filter;
 }
 
-void filete_borrar(filet_t* filet) {
-    destruir_tabla(filet);
-    free(filet);
+void counting_filter_destruir(counting_filter_t* counting_filter){
+    free(counting_filter->tabla1);
+    free(counting_filter->tabla2);
+    free(counting_filter);
 }
 
-//TODO: Implement me!
-bool agregar_filtro(filet_t* filet, const char* clave) {
-	return true;
+void counting_filter_aumentar(counting_filter_t* counting_filter, const char* key){
+    counting_filter->tabla1[jenkins_hash(key, strlen(key), counting_filter->tam)] += 1;
+    counting_filter->tabla2[prime_hash(key, counting_filter->tam)] += 1;
+    return;
 }
 
-//TODO: Implement me!
-bool aumentar_filtro(filet_t* filet, const char* clave) {
-	return true;
+size_t counting_filter_obtener(counting_filter_t* counting_filter, const char* key) {
+    size_t one = counting_filter->tabla1[jenkins_hash(key, strlen(key), counting_filter->tam)];
+    size_t two = counting_filter->tabla2[prime_hash(key, counting_filter->tam)];
+    return (one > two)? two : one;
 }
 
-//TODO: Implement me!
-size_t ver_valor_filtro(filet_t* filet, const char* clave) {
-	return 0;
-}
-
-//TODO: Implement me!
-bool filtro_existe(filet_t* filet, const char* clave) {
-	return true;
-}
 
 /* FUNCIONES AUXILIARES */
 
-//Funcion de Hashing Jenkins
-//TODO: Robare los Hashings necesarios para salvar esta compañia!
-size_t FiletitoALaJenkins(const char* key, size_t length, size_t max_size) {
+size_t jenkins_hash(const char *key, size_t length, size_t max_size) {
     size_t i = 0;
     size_t hash = 0;
     while (i != length) {
@@ -82,37 +85,13 @@ size_t FiletitoALaJenkins(const char* key, size_t length, size_t max_size) {
     return hash % max_size;
 }
 
-//Funcion de Hashing Nachito
-size_t NachitoConFritas(const char* key, size_t max_size) {
+size_t prime_hash(const char *key, size_t max_size) {
     size_t hash = 0;
-    
+
 	for(hash = 0; *key != '\0'; key++)
-		hash = *key + TAMANIO_INICIAL * hash;
-	
+		hash = *key + PRIME_NUMBER * hash;
+
     return hash % max_size;
 }
 
-//Crea la Tabla (y todas las listas dentro de la misma)
-lista_t** crear_tabla(size_t tam) {
-    lista_t** tabla = malloc(sizeof(lista_t*) * tam);
-    if(!tabla)
-        return NULL;
-
-    for (int i = 0; i < tam; ++i) {
-        tabla[i] = lista_crear();
-        if(!tabla[i]) {
-            for (int j = i-1; j >= 0; --j)
-                free(tabla[j]);
-            return NULL;
-        }
-    }
-    return tabla;
-}
-
-//Destruye la tabla (y todas las listas dentro de la misma)
-void destruir_tabla(filet_t* filet) {
-    for (int i = 0; i < filet->tam; ++i) {
-        lista_destruir(filet->tabla[i], NULL);
-    }
-    free(filet->tabla);
-}
+//TODO: AGREGAR OTRA FUNCION DE HASH! HASH DEL NUMERO 33 ?
