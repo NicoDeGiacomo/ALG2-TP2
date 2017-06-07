@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "CountingFilters.h"
 #include "heap.h"
+#include "strutil.c"
 
 struct filter_result{
     const char* key;
@@ -42,6 +43,11 @@ filter_result_t *filter_result_crear(const char *key, size_t value) {
     filter_result->value = value;
 }
 
+void imprimir_tweets(const char *tweet) {
+    //TODO: No tengo idea como se debería imprimir esto.
+    printf(tweet);
+}
+
 int procesar_tweets(size_t n, size_t k){
     char** lineas = obtener_lineas(stdin, n);
 
@@ -55,20 +61,26 @@ int procesar_tweets(size_t n, size_t k){
 	if(!heap) {
 		counting_filter_destruir(filter);
 		fprintf(stderr, "Unexpected error.\n");
-        return 2;
+        return 1;
 	}
 	
-	//TODO: Hay que procesar los hashtags individuales, no las líneas. (Contar comas y listo)
-	
-    counting_filter_aumentar_arr(filter, (const char **) lineas, n);
+	//TODO: Hay que procesar los hashtags individuales --> Usar funcion split
+    //TODO: Sacar hardcodeo de ','
+    //TODO: Esto solo va a splitear la primera linea del archivo -> Para empezar a probar
+	char** tweets = split(lineas[0], ',');
+
+
+
+    counting_filter_aumentar_arr(filter, (const char **) tweets, n);
 
     for (size_t i = 0; i < k; ++i){
-		
-        if(!filter_result_t* result = filter_result_crear(lineas[i], counting_filter_obtener(filter, lineas[i]))) {
+
+        filter_result_t* result = filter_result_crear(lineas[i], counting_filter_obtener(filter, lineas[i]));
+        if(!result) {
 			counting_filter_destruir(filter);
 			heap_destruir(heap, free);
 			fprintf(stderr, "Unexpected error.\n");
-			return 3;			
+			return 1;
 		}
 		
         heap_encolar(heap, result);
@@ -77,11 +89,22 @@ int procesar_tweets(size_t n, size_t k){
     for (size_t i = k; i < n; ++i){
 		
 		if(filter_result_cmp(lineas[i], heap_ver_max(heap)) == -1) {
-			filter_result_t* buffer = heap_desencolar(heap);
+            free(heap_desencolar(heap));
+
 			filter_result_t* result = filter_result_crear(lineas[i], counting_filter_obtener(filter, lineas[i]));
-			heap_encolar(heap, result);
-			free(buffer);
+            if(!result) {
+                counting_filter_destruir(filter);
+                heap_destruir(heap, free);
+                fprintf(stderr, "Unexpected error.\n");
+                return 1;
+            }
+
+            heap_encolar(heap, result);
 		}
+    }
+
+    while (!heap_esta_vacio(heap)){
+        imprimir_tweets( ((filter_result_t*)heap_desencolar(heap))->key );
     }
 	
     //TODO: Devolver los k trending hashtags.
