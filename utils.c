@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
+//TODO: HACER EL .H DE ESTE ARCHIVO
 char** split(const char* str, char sep){
 
     size_t largo = strlen(str);
@@ -100,9 +100,10 @@ void free_strv(char *strv[]){
     free(strv);
 }
 
-//Obtiene n lineas del archivo, y para si llegó al eof
-char** obtener_lineas(FILE* file, size_t n) {
-    char** var = malloc(sizeof(char*) * n);
+//Obtiene n lineas del archivo, y para si llegó al eof -> Las n lineas terminan en null
+//TODO: SI N ES NULL LEE TODO EL ARCHIVO
+char** obtener_lineas(FILE* file, size_t n){
+    char** var = malloc(sizeof(char*) * (n + 1));
     for (size_t i = 0; i < n; ++i) {
         if(feof(file))
             break;

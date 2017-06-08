@@ -1,31 +1,27 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "CountingFilters.h"
+#include "utils.c"
+#include "hash.h"
+
 
 int procesar_usuarios(const char* name){
 	
-	FILE* tweets = fopen(name, "r");
-	if(!tweets) {
+	FILE* file = fopen(name, "r");
+	if(!file) {
 		fprintf(stderr, "Unexpected error.\n");
 		return 1;
 	}
 
-	counting_filter_t* filter = counting_filter_crear();
-	if (!filter){
-        fclose(tweets);
+    hash_t* hash = hash_crear(NULL);
+	if (!hash){
+        fclose(file);
         fprintf(stderr, "Unexpected error.\n");
 		return 1;
 	}
 
+    char** lineas = obtener_lineas(file, NULL);
 
-	
-	size_t esUsuario = 1;
-	char charLectura = 0;
-	char usuario[140]; //Max en MELI?
-	
-	while(!feof(tweets)) {
-		charLectura = fgetc(tweets);
+	while(!feof(file)) {
+		charLectura = fgetc(file);
 		
 		//TODO: Append char a nombre usuario.
 		
