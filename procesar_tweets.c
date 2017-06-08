@@ -33,7 +33,7 @@ filter_result_t *filter_result_crear(const char *key, size_t value) {
 
 void imprimir_tweets(const char *tweet) {
     //TODO: No tengo idea como se debería imprimir esto.
-    printf(tweet);
+    printf("%s", tweet);
 }
 
 int procesar_tweets(size_t n, size_t k){
@@ -96,7 +96,8 @@ int procesar_tweets(size_t n, size_t k){
         imprimir_tweets( ((filter_result_t*)heap_desencolar(heap))->key );
     }
 	
-    //TODO: Devolver los k trending hashtags.
+    //TODO: Imprimir los k trending hashtags.
+    return 0;
 }
 
 int main(int argc, char const *argv[]){

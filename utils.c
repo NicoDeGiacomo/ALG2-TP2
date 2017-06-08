@@ -107,7 +107,7 @@ char** obtener_lineas(FILE* file, size_t n){
 
     char** var = malloc(sizeof(char*) * (n + 1));
 
-    for (size_t i = 0; (n==NULL)||!feof(file)||(i < n); ++i) {
+    for (size_t i = 0; (!n)||!feof(file)||(i < n); ++i) {
         size_t size = 100;
         char *str = realloc(NULL, sizeof(char)*size);
         if(!str)
