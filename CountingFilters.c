@@ -29,7 +29,6 @@ size_t prime_hash(const char *key, size_t max_size);
 /*PRIMITIVAS*/
 
 counting_filter_t* counting_filter_crear(){
-    //TODO: ENCONTRAR EL PRIMO INMEDIATO SIGUIENTE Y CREAR CON ESE TAMAÑO PARA EVITAR COLISIONES
     counting_filter_t* counting_filter = malloc(sizeof(counting_filter_t));
     if(!counting_filter)
         return NULL;
