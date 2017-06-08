@@ -4,6 +4,7 @@
 #include "CountingFilters.h"
 
 #define PRIME_NUMBER 1009
+#define TAM 50777
 
 //TODO: TESTs al tda bloom filters?
 //NOTA: Para redimensionar habria que re-hashear (no se puede) -- Concusion: No se redimensiona
@@ -27,26 +28,26 @@ size_t prime_hash(const char *key, size_t max_size);
 
 /*PRIMITIVAS*/
 
-counting_filter_t* counting_filter_crear(size_t size){
+counting_filter_t* counting_filter_crear(){
     //TODO: ENCONTRAR EL PRIMO INMEDIATO SIGUIENTE Y CREAR CON ESE TAMAÑO PARA EVITAR COLISIONES
     counting_filter_t* counting_filter = malloc(sizeof(counting_filter_t));
     if(!counting_filter)
         return NULL;
 
-    counting_filter->tabla1 = calloc(size, sizeof(size_t));
+    counting_filter->tabla1 = calloc(TAM, sizeof(size_t));
     if(!counting_filter->tabla1){
         free(counting_filter);
         return NULL;
     }
 
-    counting_filter->tabla2 = calloc(size, sizeof(size_t));
+    counting_filter->tabla2 = calloc(TAM, sizeof(size_t));
     if(!counting_filter->tabla2){
         free(counting_filter->tabla1);
         free(counting_filter);
         return NULL;
     }
 
-    counting_filter->tam = size;
+    counting_filter->tam = TAM;
 
     return counting_filter;
 }

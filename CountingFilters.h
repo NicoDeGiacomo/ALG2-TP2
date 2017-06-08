@@ -12,7 +12,7 @@ typedef struct counting_filter counting_filter_t;
 //Primitivas:
 
 //Crea un CountingFilet
-counting_filter_t* counting_filter_crear(size_t size);
+counting_filter_t* counting_filter_crear();
 
 //Borra un CountingFilet
 void counting_filter_destruir(counting_filter_t* counting_filter);

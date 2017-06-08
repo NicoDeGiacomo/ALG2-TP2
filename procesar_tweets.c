@@ -51,7 +51,7 @@ void imprimir_tweets(const char *tweet) {
 int procesar_tweets(size_t n, size_t k){
     char** lineas = obtener_lineas(stdin, n);
 
-    counting_filter_t* filter = counting_filter_crear(n);
+    counting_filter_t* filter = counting_filter_crear();
     if (!filter){
         fprintf(stderr, "Unexpected error.\n");
         return 1;
@@ -67,6 +67,7 @@ int procesar_tweets(size_t n, size_t k){
 	//TODO: Hay que procesar los hashtags individuales --> Usar funcion split
     //TODO: Sacar hardcodeo de ','
     //TODO: Esto solo va a splitear la primera linea del archivo -> Para empezar a probar
+    //TODO: Hay que preguntar/pensar como es que se hace para guardar el historico total + los n actuales (dos filtros distintos ?)
 	char** tweets = split(lineas[0], ',');
 
 
