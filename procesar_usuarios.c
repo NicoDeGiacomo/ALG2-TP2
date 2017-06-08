@@ -2,6 +2,19 @@
 #include "utils.c"
 #include "hash.h"
 
+#define SEPARADOR ','
+
+void imprimir_usuarios(char* usuario, size_t tags) {
+    printf("%zu: %s", tags, usuario);
+}
+
+size_t contar_tags(char* str, char sep) {
+    size_t cant_sep = 0;
+    for (size_t i = 0; str[i]; i++)
+        if(str[i] == sep)
+            cant_sep++;
+    return cant_sep;
+}
 
 int procesar_usuarios(const char* name){
 	
@@ -20,13 +33,17 @@ int procesar_usuarios(const char* name){
 
     char** lineas = obtener_lineas(file, NULL);
 
+
+    //Contar la cantidad de comas por usuario
+
     for (int i = 0; lineas[i] != NULL; ++i) {
-        void* tmp = hash_obtener(hash, lineas[i]);
-        int value = tmp? (*(int*)tmp) + 1 : 1;
-        hash_guardar(hash, lineas[i], &value);
+
+        size_t tags = contar_tags(lineas[i], SEPARADOR);
+        imprimir_usuarios(lineas[i], tags);
     }
 
-	
+    return 0;
+
 }
 
 int main(int argc, char const *argv[]){
