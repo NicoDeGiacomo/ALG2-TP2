@@ -20,6 +20,12 @@ int procesar_usuarios(const char* name){
 
     char** lineas = obtener_lineas(file, NULL);
 
+    for (int i = 0; lineas[i] != NULL; ++i) {
+        void* tmp = hash_obtener(hash, lineas[i]);
+        int value = tmp? (*(int*)tmp) + 1 : 1;
+        hash_guardar(hash, lineas[i], &value);
+    }
+
 	
 }
 
