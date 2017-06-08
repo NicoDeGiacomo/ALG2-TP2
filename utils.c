@@ -103,11 +103,31 @@ void free_strv(char *strv[]){
 //Obtiene n lineas del archivo, y para si llegó al eof -> Las n lineas terminan en null
 //TODO: SI N ES NULL LEE TODO EL ARCHIVO
 char** obtener_lineas(FILE* file, size_t n){
+
     char** var = malloc(sizeof(char*) * (n + 1));
+
     for (size_t i = 0; i < n; ++i) {
-        if(feof(file))
-            break;
-        fscanf(file, var[i]);
+
+        size_t size = 100;
+        char *str = realloc(NULL, sizeof(char)*size);//size is start size
+        if(!str)
+            return NULL;
+
+        size_t len = 0;
+        int ch=fgetc(file);
+        while(ch != '\n'){
+            str[len]= (char) ch;
+            len++;
+            if(len==size){
+                str = realloc(str, sizeof(char)*(size+=size));
+                if(!str)
+                    return NULL;
+            }
+            ch=fgetc(file);
+        }
+        str[len]='\0';
+        var[i] = str;
     }
+
     return var;
 }
