@@ -20,25 +20,6 @@ int procesar_usuarios(const char* name){
 
     char** lineas = obtener_lineas(file, NULL);
 
-	while(!feof(file)) {
-		charLectura = fgetc(file);
-		
-		//TODO: Append char a nombre usuario.
-		
-		if(charLectura == '\n') {
-			//TODO: Reiniciar Usuario.
-			esUsuario = 1;
-			continue;
-		}
-		
-		if(charLectura == ',') {
-			if(!filtro_existe(bloom, usuario)) {
-				agregar_filtro(bloom, usuario);
-			}
-			
-			aumentar_filtro(bloom, usuario);
-		}
-	}
 	
 }
 

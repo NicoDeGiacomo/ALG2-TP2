@@ -100,16 +100,16 @@ void free_strv(char *strv[]){
     free(strv);
 }
 
-//Obtiene n lineas del archivo, y para si llegó al eof -> Las n lineas terminan en null
-//TODO: SI N ES NULL LEE TODO EL ARCHIVO
+//Obtiene n lineas del archivo (para si llegó al eof).
+//Si n es NULL lee el archivo completo.
+//Devuelve un array (dinamically allocated) terminado en NULL con las lineas (dynamically allocated) en forma de string.
 char** obtener_lineas(FILE* file, size_t n){
 
     char** var = malloc(sizeof(char*) * (n + 1));
 
-    for (size_t i = 0; i < n; ++i) {
-
+    for (size_t i = 0; (n==NULL)||!feof(file)||(i < n); ++i) {
         size_t size = 100;
-        char *str = realloc(NULL, sizeof(char)*size);//size is start size
+        char *str = realloc(NULL, sizeof(char)*size);
         if(!str)
             return NULL;
 
@@ -128,6 +128,8 @@ char** obtener_lineas(FILE* file, size_t n){
         str[len]='\0';
         var[i] = str;
     }
+
+    var[n] = NULL;
 
     return var;
 }
