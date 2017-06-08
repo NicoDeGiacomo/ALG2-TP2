@@ -3,19 +3,19 @@
 #include <string.h>
 #include "CountingFilters.h"
 
-void procesar_usuarios(const char* name){
+int procesar_usuarios(const char* name){
 	
 	FILE* tweets = fopen(name, "r");
 	if(!tweets) {
-		printf("No se pudo inicializar el archivo de prueba.\n");
-		return;
+		fprintf(stderr, "Unexpected error.\n");
+		return 1;
 	}
-	
-	filet_t* bloom = crear_filete();
-	if(!bloom) {
-		printf("Error de proceso de filet mignon.\n");
-		fclose(tweets);
-		return;
+
+	counting_filter_t* filter = counting_filter_crear();
+	if (!filter){
+        fclose(tweets);
+        fprintf(stderr, "Unexpected error.\n");
+		return 1;
 	}
 	
 	size_t esUsuario = 1;
@@ -46,10 +46,9 @@ void procesar_usuarios(const char* name){
 
 int main(int argc, char const *argv[]){
     if (argc != 2){
-        fprintf(stderr, "Please provide 1 arguments\n");
+        fprintf(stderr, "Usage: ./procesar_tweets <inputfile>\n");
         return 1;
     }
 
-    procesar_usuarios(argv[1]);
-    return 0;
+    return procesar_usuarios(argv[1]);
 }
