@@ -17,6 +17,8 @@ int procesar_usuarios(const char* name){
         fprintf(stderr, "Unexpected error.\n");
 		return 1;
 	}
+
+
 	
 	size_t esUsuario = 1;
 	char charLectura = 0;

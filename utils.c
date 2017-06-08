@@ -99,3 +99,14 @@ void free_strv(char *strv[]){
     }
     free(strv);
 }
+
+//Obtiene n lineas del archivo, y para si llegó al eof
+char** obtener_lineas(FILE* file, size_t n) {
+    char** var = malloc(sizeof(char*) * n);
+    for (size_t i = 0; i < n; ++i) {
+        if(feof(file))
+            break;
+        fscanf(file, var[i]);
+    }
+    return var;
+}

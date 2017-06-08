@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "CountingFilters.h"
 #include "heap.h"
-#include "strutil.c"
+#include "utils.c"
 
 struct filter_result{
     const char* key;
@@ -24,23 +24,11 @@ int filter_result_cmp(const void *a, const void *b) {
     return 0;
 }
 
-
-//Obtiene n lineas del archivo, y para si llegó al eof
-char** obtener_lineas(FILE* file, size_t n) {
-    char** var = malloc(sizeof(char*) * n);
-    for (size_t i = 0; i < n; ++i) {
-		if(feof(file))
-			break;
-        fscanf(file, var[i]);
-    }
-    return var;
-}
-
-
 filter_result_t *filter_result_crear(const char *key, size_t value) {
     filter_result_t* filter_result = malloc(sizeof(filter_result_t));
     filter_result->key = key;
     filter_result->value = value;
+    return filter_result;
 }
 
 void imprimir_tweets(const char *tweet) {
