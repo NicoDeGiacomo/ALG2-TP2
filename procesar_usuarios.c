@@ -83,12 +83,13 @@ int procesar_usuarios(const char* name){
 			fprintf(stderr, "Unexpected error.\n");
 			return 1;
 		}
+	    
+		free(usuario);
 		
         lista_insertar_ultimo(tabla[tags], usuario);
     }
 
 	if(!imprimir_usuarios(tabla)) {
-		free(usuario);
 		free(lineas);
 		//TODO: Destruir tabla.
 		hash_destruir(hash);
@@ -97,7 +98,6 @@ int procesar_usuarios(const char* name){
 		return 1;
 	}
 	
-	free(usuario);
 	free(lineas);
 	//TODO: Destruir tabla.
 	hash_destruir(hash);
