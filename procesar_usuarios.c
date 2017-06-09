@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "utils.c"
+#include "utils.h"
 #include "hash.h"
 #include "lista.h"
 

@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "counting_filters.h"
 #include "heap.h"
-#include "utils.c"
+#include "utils.h"
 
 struct filter_result{
     const char* key;
