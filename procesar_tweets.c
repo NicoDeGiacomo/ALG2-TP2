@@ -103,7 +103,7 @@ int procesar_tweets(size_t n, size_t k){
 int main(int argc, char const *argv[]){
     if (argc != 3){
         //TODO: Checkear que n y k sean numeros enteros positivos distintos de cero
-        fprintf(stderr, "Please provide 2 arguments\n");
+        fprintf(stderr, "Usage: ./procesar_tweets <inputfile> <n> <k>\n");
         return 1;
     }
 

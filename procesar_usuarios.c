@@ -109,7 +109,7 @@ int procesar_usuarios(const char* name){
 
 int main(int argc, char const *argv[]){
     if (argc != 2){
-        fprintf(stderr, "Usage: ./procesar_tweets <inputfile>\n");
+        fprintf(stderr, "Usage: ./procesar_usuarios <inputfile>\n");
         return 1;
     }
 
