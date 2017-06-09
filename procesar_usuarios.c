@@ -70,7 +70,7 @@ int procesar_usuarios(const char* name){
 		return 1;
 	}
 
-    char** lineas = obtener_lineas(file, NULL);
+    char** lineas = obtener_lineas(file, 0);
 	if(!lineas) {
 		hash_destruir(hash);
 		fclose(file);
