@@ -60,15 +60,15 @@ int procesar_tweets(size_t n, size_t k){
 
     for (size_t j = 0; j < cant; ++j){
         size_t tam = 0;
-        char **tweets = split(lineas[0], ',', &tam);
+        char **tweets = split(lineas[j], ',', &tam);
 
 
         counting_filter_aumentar_arr(filter, (const char **) tweets, tam);
 
-        for (size_t i = 0; i < k; ++i) {
+        for (size_t i = 0; i < tam; ++i) {
 
             filter_result_t *result = filter_result_crear(tweets[i], counting_filter_obtener(filter, tweets[i]));
-            if (!result) {
+            if (!result){
                 counting_filter_destruir(filter);
                 heap_destruir(heap, free);
                 fprintf(stderr, "Unexpected error.\n");
