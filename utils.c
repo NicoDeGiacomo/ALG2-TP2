@@ -1,11 +1,8 @@
-//Nombre: Nicolás De Giácomo
-//Padron: 99702
-//Corrector: Matias Cano
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-//TODO: HACER EL .H DE ESTE ARCHIVO
-char** split(const char* str, char sep){
+
+char **split(char *str, int sep, size_t *tam) {
 
     size_t largo = strlen(str);
     char buffer[largo]; //El largo maximo es el numero de caracteres (Ningun separador)
@@ -40,6 +37,7 @@ char** split(const char* str, char sep){
     }
 
     strv[count] = NULL; //Marco el final
+    *tam = (size_t) count;
     return strv;
 }
 
@@ -103,18 +101,25 @@ void free_strv(char *strv[]){
 //Obtiene n lineas del archivo (para si llegó al eof).
 //Si n es NULL lee el archivo completo.
 //Devuelve un array (dinamically allocated) terminado en NULL con las lineas (dynamically allocated) en forma de string.
-char** obtener_lineas(FILE* file, size_t n){
+//Cant es la cantidad de lineas leidas
+char **obtener_lineas(FILE *file, size_t n, size_t *cant) {
 
     char** var = malloc(sizeof(char*) * (n + 1));
 
     for (size_t i = 0; (!n)||!feof(file)||(i < n); ++i) {
+
         size_t size = 100;
-        char *str = realloc(NULL, sizeof(char)*size);
+        char *str = malloc(sizeof(char)*size);
         if(!str)
             return NULL;
 
         size_t len = 0;
         int ch=fgetc(file);
+        if(ch == EOF){
+            if (!n)
+                n = i;
+            break;
+        }
         while(ch != '\n'){
             str[len]= (char) ch;
             len++;
@@ -130,6 +135,8 @@ char** obtener_lineas(FILE* file, size_t n){
     }
 
     var[n] = NULL;
+    if(cant)
+        *cant = n;
 
     return var;
 }

@@ -37,7 +37,8 @@ void imprimir_tweets(const char *tweet) {
 }
 
 int procesar_tweets(size_t n, size_t k){
-    char** lineas = obtener_lineas(stdin, n);
+    size_t cant = 0;
+    char** lineas = obtener_lineas(stdin, n, &cant);
 
     counting_filter_t* filter = counting_filter_crear();
     if (!filter){
@@ -52,36 +53,22 @@ int procesar_tweets(size_t n, size_t k){
         return 1;
 	}
 	
-	//TODO: Hay que procesar los hashtags individuales --> Usar funcion split
+	//TODO: ESTA CONTANDO AL USUARIO COMO OTRO TAG
     //TODO: Sacar hardcodeo de ','
-    //TODO: Esto solo va a splitear la primera linea del archivo -> Para empezar a probar
     //TODO: Hay que preguntar/pensar como es que se hace para guardar el historico total + los n actuales (dos filtros distintos ?)
-	char** tweets = split(lineas[0], ',');
 
 
+    for (size_t j = 0; j < cant; ++j){
+        size_t tam = 0;
+        char **tweets = split(lineas[0], ',', &tam);
 
-    counting_filter_aumentar_arr(filter, (const char **) tweets, n);
 
-    for (size_t i = 0; i < k; ++i){
+        counting_filter_aumentar_arr(filter, (const char **) tweets, tam);
 
-        filter_result_t* result = filter_result_crear(lineas[i], counting_filter_obtener(filter, lineas[i]));
-        if(!result) {
-			counting_filter_destruir(filter);
-			heap_destruir(heap, free);
-			fprintf(stderr, "Unexpected error.\n");
-			return 1;
-		}
-		
-        heap_encolar(heap, result);
-    }
+        for (size_t i = 0; i < k; ++i) {
 
-    for (size_t i = k; i < n; ++i){
-		
-		if(filter_result_cmp(lineas[i], heap_ver_max(heap)) == -1) {
-            free(heap_desencolar(heap));
-
-			filter_result_t* result = filter_result_crear(lineas[i], counting_filter_obtener(filter, lineas[i]));
-            if(!result) {
+            filter_result_t *result = filter_result_crear(tweets[i], counting_filter_obtener(filter, tweets[i]));
+            if (!result) {
                 counting_filter_destruir(filter);
                 heap_destruir(heap, free);
                 fprintf(stderr, "Unexpected error.\n");
@@ -89,21 +76,43 @@ int procesar_tweets(size_t n, size_t k){
             }
 
             heap_encolar(heap, result);
-		}
-    }
+        }
 
-    while (!heap_esta_vacio(heap)){
-        imprimir_tweets( ((filter_result_t*)heap_desencolar(heap))->key );
+        for (size_t i = k; i < n; ++i) {
+
+            if (filter_result_cmp(lineas[i], heap_ver_max(heap)) == -1) {
+                free(heap_desencolar(heap));
+
+                filter_result_t *result = filter_result_crear(lineas[i], counting_filter_obtener(filter, lineas[i]));
+                if (!result) {
+                    counting_filter_destruir(filter);
+                    heap_destruir(heap, free);
+                    fprintf(stderr, "Unexpected error.\n");
+                    return 1;
+                }
+
+                heap_encolar(heap, result);
+            }
+        }
+
+        while (!heap_esta_vacio(heap)) {
+            imprimir_tweets(((filter_result_t *) heap_desencolar(heap))->key);
+        }
+
+        free_strv(tweets);
     }
-	
-    //TODO: Imprimir los k trending hashtags.
+    free_strv(lineas);
+    counting_filter_destruir(filter);
+    heap_destruir(heap, NULL);
+
     return 0;
 }
 
 int main(int argc, char const *argv[]){
+    freopen("tweets_head.txt","r",stdin);
     if (argc != 3){
         //TODO: Checkear que n y k sean numeros enteros positivos distintos de cero
-        fprintf(stderr, "Usage: ./procesar_tweets <inputfile> <n> <k>\n");
+        fprintf(stderr, "Usage: ./procesar_tweets <n> <k>\n");
         return 1;
     }
 

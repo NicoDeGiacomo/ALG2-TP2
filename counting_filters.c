@@ -16,15 +16,15 @@
 struct counting_filter{
     size_t* tabla1;
     size_t* tabla2;
-    size_t tam;
+    size_t* tabla3;
 };
 
 
 /*AUXILIARES*/
 
-size_t jenkins_hash(const char *key, size_t length, size_t max_size);
-size_t prime_hash(const char *key, size_t max_size);
-
+size_t jenkins_hash(const char *key, size_t length);
+size_t prime_hash(const char *key);
+size_t hash_33(const char *key);
 
 /*PRIMITIVAS*/
 
@@ -46,7 +46,13 @@ counting_filter_t* counting_filter_crear(){
         return NULL;
     }
 
-    counting_filter->tam = TAM;
+    counting_filter->tabla3 = calloc(TAM, sizeof(size_t));
+    if(!counting_filter->tabla2){
+        free(counting_filter->tabla1);
+        free(counting_filter->tabla2);
+        free(counting_filter);
+        return NULL;
+    }
 
     return counting_filter;
 }
@@ -54,12 +60,14 @@ counting_filter_t* counting_filter_crear(){
 void counting_filter_destruir(counting_filter_t* counting_filter){
     free(counting_filter->tabla1);
     free(counting_filter->tabla2);
+    free(counting_filter->tabla3);
     free(counting_filter);
 }
 
 void counting_filter_aumentar(counting_filter_t* counting_filter, const char* key){
-    counting_filter->tabla1[jenkins_hash(key, strlen(key), counting_filter->tam)] += 1;
-    counting_filter->tabla2[prime_hash(key, counting_filter->tam)] += 1;
+    counting_filter->tabla1[jenkins_hash(key, (size_t) strlen(key))] += 1;
+    counting_filter->tabla2[prime_hash(key)] += 1;
+    counting_filter->tabla3[hash_33(key)] += 1;
     return;
 }
 
@@ -70,15 +78,20 @@ void counting_filter_aumentar_arr(counting_filter_t* counting_filter, const char
 }
 
 size_t counting_filter_obtener(counting_filter_t* counting_filter, const char* key) {
-    size_t one = counting_filter->tabla1[jenkins_hash(key, strlen(key), counting_filter->tam)];
-    size_t two = counting_filter->tabla2[prime_hash(key, counting_filter->tam)];
-    return (one > two)? two : one;
+    size_t one = counting_filter->tabla1[jenkins_hash(key, strlen(key))];
+    size_t two = counting_filter->tabla2[prime_hash(key)];
+    size_t three = counting_filter->tabla3[hash_33(key)];
+    if(one < two && one < three)
+        return one;
+    if(two < one && two < three)
+        return two;
+    return three;
 }
 
 
 /* FUNCIONES AUXILIARES */
 
-size_t jenkins_hash(const char *key, size_t length, size_t max_size) {
+size_t jenkins_hash(const char *key, size_t length){
     size_t i = 0;
     size_t hash = 0;
     while (i != length) {
@@ -89,16 +102,22 @@ size_t jenkins_hash(const char *key, size_t length, size_t max_size) {
     hash += hash << 3;
     hash ^= hash >> 11;
     hash += hash << 15;
-    return hash % max_size;
+    return hash % TAM;
 }
 
-size_t prime_hash(const char *key, size_t max_size) {
+size_t prime_hash(const char *key){
     size_t hash = 0;
 
 	for(hash = 0; *key != '\0'; key++)
 		hash = *key + PRIME_NUMBER * hash;
 
-    return hash % max_size;
+    return hash % TAM;
 }
 
-//TODO: AGREGAR OTRA FUNCION DE HASH! HASH DEL NUMERO 33 ?
+size_t hash_33(const char *key){
+    unsigned long hash = 5381;
+    int c;
+    while ((c = *key++))
+        hash = ((hash << 5) + hash) + c;
+    return hash % TAM;
+}
