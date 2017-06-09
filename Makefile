@@ -11,4 +11,4 @@ CFLAGS += -Werror
 # También se puede invocar `make procesar_tweets` o `make procesar_usuarios` para
 # compilar una parte del TP solamente.
 
-all: procesar_tweets procesar_usuarios
+all: procesar_tweets procesar_usuarios hash.o lista.o heap.o counting_filters.o

@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "CountingFilters.h"
+#include "counting_filters.h"
 #include "heap.h"
 #include "utils.c"
 
