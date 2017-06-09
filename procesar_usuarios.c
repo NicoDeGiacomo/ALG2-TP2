@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "utils.c"
 #include "hash.h"
+#include "lista.h"
 
 #define SEPARADOR ','
 
@@ -8,30 +9,41 @@ char* parsear_usuario(char* linea) {
 	char* buffer = malloc(strlen(linea));
 	if(!buffer)
 		return NULL;
-	int pos = 0;
-	for (size_t i = 0; str[i]; i++) {
-        if(str[i] != sep) {
-			buffer[pos] = str[i];
-			pos++;
-		}
+
+	for (size_t i = 0;; i++) {
+        if(linea[i] != SEPARADOR){
+            buffer[i] = '\0';
+            break;
+        }
+        buffer[i] = linea[i];
     }
-	buffer[pos] = '\0';
+
     return buffer;
 }
 
-bool imprimir_usuarios(lista_t** tabla) {
-	for(int i = 0; tabla[i]; i++) {
-		lista_iter_t* iter = lista_iter_crear(tabla[i]);
-		if(!iter)
-			return false;
-		
-		while(!lista_iter_al_final(iter)) {
-			char* usuario = (char*) lista_iter_ver_actual(iter);
-			printf("%zu: %s", i, usuario);
-			lista_iter_avanzar(iter);
-		}
-	}
-	
+bool imprimir_usuarios(hash_t *hash) {
+    hash_iter_t* hash_iter = hash_iter_crear(hash);
+    if(!hash_iter)
+        return false;
+
+    while (!hash_iter_al_final(hash_iter)){
+        char* key = (char *) hash_iter_ver_actual(hash_iter);
+        printf("%s: ", key);
+
+        lista_t* lista = hash_obtener(hash, key);
+        lista_iter_t* lista_iter = lista_iter_crear(lista);
+        if(!lista_iter){
+            hash_iter_destruir(hash_iter);
+            return false;
+        }
+
+        while (!lista_iter_al_final(lista_iter)){
+            printf("%s", (char *) lista_iter_ver_actual(lista_iter));
+        }
+        lista_iter_destruir(lista_iter);
+    }
+	hash_iter_destruir(hash_iter);
+
 	return true;
 }
 
@@ -65,45 +77,31 @@ int procesar_usuarios(const char* name){
         fprintf(stderr, "Unexpected error.\n");
 		return 1;
 	}
-	
-	size_t tamanio = 0;
-	while (lineas[i]) {
-		tamanio++;
-	}
 
-	lista_t** tabla = crear_tabla(tamanio);	
-    for (int i = 0; lineas[i] != NULL; ++i) {
-        size_t tags = contar_tags(lineas[i], SEPARADOR);
-		
-		if(!char* usuario = parsear_usuario(lineas[i])) {
-			//TODO: Destruir tabla.
-			free(lineas);
-			hash_destruir(hash);
-			fclose(file);
-			fprintf(stderr, "Unexpected error.\n");
-			return 1;
-		}
-	    
-		
-        lista_insertar_ultimo(tabla[tags], usuario);
-	free(usuario);
+    for (int i = 0; lineas[i] != NULL ; ++i) {
+        char* user = parsear_usuario(lineas[i]);
+        size_t n_tags = contar_tags(lineas[i], SEPARADOR);
+        char str[256] = "";
+        snprintf(str, sizeof(str), "%zu", n_tags);
+
+        lista_t* lista = hash_obtener(hash, user);
+        if(!lista)
+            lista = lista_crear();
+        lista_insertar_ultimo(lista, user);
+        hash_guardar(hash, str, lista);
     }
 
-	if(!imprimir_usuarios(tabla)) {
-		free(lineas);
-		//TODO: Destruir tabla.
+	if(!imprimir_usuarios(hash)) {
+        free_strv(lineas);
 		hash_destruir(hash);
 		fclose(file);
 		fprintf(stderr, "Unexpected error.\n");
 		return 1;
 	}
-	
-	free(lineas);
-	//TODO: Destruir tabla.
+
+    free_strv(lineas);
 	hash_destruir(hash);
 	fclose(file);
-	
-	//TODO: Codigo repetido?
 	
     return 0;
 
