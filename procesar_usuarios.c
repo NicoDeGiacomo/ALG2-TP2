@@ -84,9 +84,9 @@ int procesar_usuarios(const char* name){
 			return 1;
 		}
 	    
-		free(usuario);
 		
         lista_insertar_ultimo(tabla[tags], usuario);
+	free(usuario);
     }
 
 	if(!imprimir_usuarios(tabla)) {
