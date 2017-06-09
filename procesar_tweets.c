@@ -37,8 +37,8 @@ void imprimir_tweets(const char *tweet) {
 }
 
 int procesar_tweets(size_t n, size_t k){
-    size_t cant = 0;
-    char** lineas = obtener_lineas(stdin, n, &cant);
+    size_t n_lineas = 0;
+    char** lineas = obtener_lineas(stdin, n, &n_lineas);
 
     counting_filter_t* filter = counting_filter_crear();
     if (!filter){
@@ -58,32 +58,20 @@ int procesar_tweets(size_t n, size_t k){
     //TODO: Hay que preguntar/pensar como es que se hace para guardar el historico total + los n actuales (dos filtros distintos ?)
 
 
-    for (size_t j = 0; j < cant; ++j){
-        size_t tam = 0;
-        char **tweets = split(lineas[j], ',', &tam);
+    for (size_t j = 0; j < n_lineas; ++j) {
+        size_t n_tags = 0;
+        char **tags = split(lineas[j], ',', &n_tags);
 
 
-        counting_filter_aumentar_arr(filter, (const char **) tweets, tam);
 
-        for (size_t i = 0; i < tam; ++i) {
+        size_t n_encolados = 0;
 
-            filter_result_t *result = filter_result_crear(tweets[i], counting_filter_obtener(filter, tweets[i]));
-            if (!result){
-                counting_filter_destruir(filter);
-                heap_destruir(heap, free);
-                fprintf(stderr, "Unexpected error.\n");
-                return 1;
-            }
+        counting_filter_aumentar_arr(filter, (const char **) tags, n_tags);
 
-            heap_encolar(heap, result);
-        }
+        for (size_t i = 0; i < n_tags; ++i) {
 
-        for (size_t i = k; i < n; ++i) {
-
-            if (filter_result_cmp(lineas[i], heap_ver_max(heap)) == -1) {
-                free(heap_desencolar(heap));
-
-                filter_result_t *result = filter_result_crear(lineas[i], counting_filter_obtener(filter, lineas[i]));
+            if (n_encolados < k){
+                filter_result_t *result = filter_result_crear(tags[i], counting_filter_obtener(filter, tags[i]));
                 if (!result) {
                     counting_filter_destruir(filter);
                     heap_destruir(heap, free);
@@ -91,19 +79,32 @@ int procesar_tweets(size_t n, size_t k){
                     return 1;
                 }
 
+                n_encolados++;
                 heap_encolar(heap, result);
+
+            }else{
+                if (filter_result_cmp(tags[i], heap_ver_max(heap)) == -1) {
+                    free(heap_desencolar(heap));
+
+                    filter_result_t *result = filter_result_crear(tags[i], counting_filter_obtener(filter, tags[i]));
+                    if (!result) {
+                        counting_filter_destruir(filter);
+                        heap_destruir(heap, free);
+                        fprintf(stderr, "Unexpected error.\n");
+                        return 1;
+                    }
+
+                    heap_encolar(heap, result);
+                }
             }
         }
 
-        while (!heap_esta_vacio(heap)) {
-            imprimir_tweets(((filter_result_t *) heap_desencolar(heap))->key);
-        }
-
-        free_strv(tweets);
+        free_strv(tags);
     }
+
     free_strv(lineas);
     counting_filter_destruir(filter);
-    heap_destruir(heap, NULL);
+    heap_destruir(heap, free);
 
     return 0;
 }
