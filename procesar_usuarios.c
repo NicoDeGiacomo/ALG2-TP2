@@ -5,13 +5,13 @@
 
 #define SEPARADOR ','
 
-char* parsear_usuario(char* linea) {
+char* parsear_usuario(char* linea, char sep) {
 	char* buffer = malloc(strlen(linea));
 	if(!buffer)
 		return NULL;
 
 	for (size_t i = 0;; i++) {
-        if(linea[i] != SEPARADOR){
+        if(linea[i] != sep){
             buffer[i] = '\0';
             break;
         }
@@ -79,7 +79,7 @@ int procesar_usuarios(const char* name){
 	}
 
     for (int i = 0; lineas[i] != NULL ; ++i) {
-        char* user = parsear_usuario(lineas[i]);
+        char* user = parsear_usuario(lineas[i], SEPARADOR);
         size_t n_tags = contar_tags(lineas[i], SEPARADOR);
         char str[256] = "";
         snprintf(str, sizeof(str), "%zu", n_tags);
