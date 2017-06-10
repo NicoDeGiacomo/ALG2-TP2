@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "counting_filters.h"
+#include "count_min_sketch.h"
 #include "heap.h"
 #include "utils.h"
 
@@ -40,7 +40,7 @@ int procesar_tweets(size_t n, size_t k){
     size_t n_lineas = 0;
     char** lineas = obtener_lineas(stdin, n, &n_lineas);
 
-    counting_filter_t* filter = counting_filter_crear();
+    count_min_sketch_t* filter = counting_filter_crear();
     if (!filter){
         fprintf(stderr, "Unexpected error.\n");
         return 1;

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "counting_filters.h"
+#include "count_min_sketch.h"
 
 #define PRIME_NUMBER 1009
 #define TAM 50777
@@ -13,7 +13,7 @@
 
 /*ESTRUCTURAS*/
 
-struct counting_filter{
+struct count_min_sketch{
     size_t* tabla1;
     size_t* tabla2;
     size_t* tabla3;
@@ -26,10 +26,11 @@ size_t jenkins_hash(const char *key, size_t length);
 size_t prime_hash(const char *key);
 size_t hash_33(const char *key);
 
+
 /*PRIMITIVAS*/
 
-counting_filter_t* counting_filter_crear(){
-    counting_filter_t* counting_filter = malloc(sizeof(counting_filter_t));
+count_min_sketch_t* counting_filter_crear(){
+    count_min_sketch_t* counting_filter = malloc(sizeof(count_min_sketch_t));
     if(!counting_filter)
         return NULL;
 
@@ -57,27 +58,27 @@ counting_filter_t* counting_filter_crear(){
     return counting_filter;
 }
 
-void counting_filter_destruir(counting_filter_t* counting_filter){
+void counting_filter_destruir(count_min_sketch_t* counting_filter){
     free(counting_filter->tabla1);
     free(counting_filter->tabla2);
     free(counting_filter->tabla3);
     free(counting_filter);
 }
 
-void counting_filter_aumentar(counting_filter_t* counting_filter, const char* key){
+void counting_filter_aumentar(count_min_sketch_t* counting_filter, const char* key){
     counting_filter->tabla1[jenkins_hash(key, (size_t) strlen(key))] += 1;
     counting_filter->tabla2[prime_hash(key)] += 1;
     counting_filter->tabla3[hash_33(key)] += 1;
     return;
 }
 
-void counting_filter_aumentar_arr(counting_filter_t* counting_filter, const char** key, size_t size){
+void counting_filter_aumentar_arr(count_min_sketch_t* counting_filter, const char** key, size_t size){
     for (size_t i = 0; i < size; ++i) {
         counting_filter_aumentar(counting_filter, key[i]);
     }
 }
 
-size_t counting_filter_obtener(counting_filter_t* counting_filter, const char* key) {
+size_t counting_filter_obtener(count_min_sketch_t* counting_filter, const char* key) {
     size_t one = counting_filter->tabla1[jenkins_hash(key, strlen(key))];
     size_t two = counting_filter->tabla2[prime_hash(key)];
     size_t three = counting_filter->tabla3[hash_33(key)];
