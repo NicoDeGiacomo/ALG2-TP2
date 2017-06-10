@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+
 char **split(char *str, int sep, size_t *tam) {
 
     size_t largo = strlen(str);
@@ -39,52 +40,6 @@ char **split(char *str, int sep, size_t *tam) {
     strv[count] = NULL; //Marco el final
     *tam = (size_t) count;
     return strv;
-}
-
-void concat(char s1[], size_t len1, char s2[]) {
-
-    if (!s1 || !s2)
-        return;
-
-    for (int j = 0; s2[j] != '\0'; len1++, j++) {
-        s1[len1] = s2[j];
-    }
-
-    s1[len1] = '\0';
-}
-
-char* join(char** strv, char sep){
-    if (!strv)
-        return "";
-
-    size_t len = 0;
-    int count = 0;
-    //Tamaño output: suma de todos los largos de las cadenas en strv + cantidad de separadores requeridos
-    while (strv[count])
-        len += strlen(strv[count++]) + 1;
-    if (!len){
-        char* output = malloc(sizeof(char) * 1);
-        strcpy(output, "");
-        return output;
-    }
-
-    char* output = malloc(sizeof(char) * len );
-    strcpy(output, "");
-
-    size_t out_len = 0;
-    char separator[2] = {sep, '\0'};
-
-    count = 0;
-    while (strv[count]){
-        concat(output, out_len, strv[count]);
-        out_len += strlen(strv[count]);
-        count ++;
-        if(strv[count]){
-            concat(output, out_len, separator);
-            out_len += strlen(separator);
-        }
-    }
-    return output;
 }
 
 void free_strv(char *strv[]){

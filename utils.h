@@ -2,11 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define SEPARADOR ','
+
 char **split(char *str, int sep, size_t *pInt);
-
-void concat(char s1[], size_t len1, char s2[]);
-
-char* join(char** strv, char sep);
 
 void free_strv(char *strv[]);
 

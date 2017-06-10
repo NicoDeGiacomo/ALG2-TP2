@@ -3,6 +3,8 @@
 #include "count_min_sketch.h"
 #include "heap.h"
 #include "utils.h"
+#include "hash.h"
+
 
 struct filter_result{
     char* key;
@@ -42,46 +44,88 @@ void imprimir_tweets(const char *tweet) {
     printf("%s\n", tweet);
 }
 
+void left_shift(char **arr, size_t* tam) {
+    for (int k = 0; k >= *tam-1; k--){
+        arr[k] = arr[k+1];
+    }
+    *tam=*tam-1;
+    return;
+}
+
+bool eliminar_repetidos(char **arr, size_t* tam) {
+    hash_t* hash = hash_crear(NULL);
+
+    for (size_t i = 0; i < *tam; ++i) {
+        hash_guardar(hash, arr[i], NULL);
+    }
+
+    hash_iter_t* iter = hash_iter_crear(hash);
+    if (!iter)
+        return false;
+
+    size_t cont = 0;
+    while (!hash_iter_al_final(iter)){
+        arr[cont] = (char *) hash_iter_ver_actual(iter);
+        cont++;
+        hash_iter_avanzar(iter);
+    }
+
+    hash_iter_destruir(iter);
+    hash_destruir(hash);
+
+    *tam = cont+1;
+    return true;
+}
+
 int procesar_tweets(size_t n, size_t k){
     size_t n_lineas = 0;
     char** lineas = obtener_lineas(stdin, n, &n_lineas);
 
-    count_min_sketch_t* filter = counting_filter_crear();
+    count_min_sketch_t* filter = count_min_sketch_crear();
     if (!filter){
         fprintf(stderr, "Unexpected error.\n");
         return 1;
     }
-	
+
     heap_t* heap = heap_crear(filter_result_cmp);
 	if(!heap) {
-		counting_filter_destruir(filter);
+		count_min_sketch_destruir(filter);
 		fprintf(stderr, "Unexpected error.\n");
         return 1;
 	}
 	
 	//TODO: ESTA CONTANDO AL USUARIO COMO OTRO TAG
-    //TODO: Sacar hardcodeo de ','
-    //TODO: Hay que preguntar/pensar como es que se hace para guardar el historico total + los n actuales (dos filtros distintos ?)
 
-
-    //TODO: n_lineas y n_tags se pueden reemplazar solo checheando si son null ?
     size_t n_encolados = 0;
     for (size_t j = 0; j < n_lineas; ++j) {
         size_t n_tags = 0;
-        char **tags = split(lineas[j], ',', &n_tags);
+        char **tags = split(lineas[j], SEPARADOR, &n_tags);
 
-        counting_filter_aumentar_arr(filter, (const char **) tags, n_tags);
+        //Ignoro el usuario
+        left_shift(tags, &n_tags);
+
+        count_min_sketch_aumentar_arr(filter, (const char **) tags, n_tags);
+
+        //Elimino los repetidos
+        if(!eliminar_repetidos(tags, &n_tags)){
+            count_min_sketch_destruir(filter);
+            heap_destruir(heap, free);
+            free_strv(lineas);
+            fprintf(stderr, "Unexpected error.\n");
+            return 1;
+        }
 
         //TODO: HAY QUE SACAR LOS REPETIDOS A LA HORA DE ENCOLAR EN EL HEAP -> DESPUES DE PASAR POR EL FILTER
 
         for (size_t i = 0; i < n_tags; ++i) {
 
             if (n_encolados < k){
-                filter_result_t *result = filter_result_crear(tags[i], counting_filter_obtener(filter, tags[i]));
-                counting_filter_reiniciar(filter, tags[i]);
+                filter_result_t *result = filter_result_crear(tags[i], count_min_sketch_obtener(filter, tags[i]));
+                //count_min_sketch_reiniciar(filter, tags[i]);
                 if (!result) {
-                    counting_filter_destruir(filter);
+                    count_min_sketch_destruir(filter);
                     heap_destruir(heap, free);
+                    free_strv(lineas);
                     fprintf(stderr, "Unexpected error.\n");
                     return 1;
                 }
@@ -93,10 +137,12 @@ int procesar_tweets(size_t n, size_t k){
                 if (filter_result_cmp(tags[i], heap_ver_max(heap)) == -1) {
                     free(heap_desencolar(heap));
 
-                    filter_result_t *result = filter_result_crear(tags[i], counting_filter_obtener(filter, tags[i]));
+                    filter_result_t *result = filter_result_crear(tags[i], count_min_sketch_obtener(filter, tags[i]));
                     if (!result) {
-                        counting_filter_destruir(filter);
+                        free_strv(lineas);
+                        count_min_sketch_destruir(filter);
                         heap_destruir(heap, free);
+                        free_strv(lineas);
                         fprintf(stderr, "Unexpected error.\n");
                         return 1;
                     }
@@ -116,7 +162,7 @@ int procesar_tweets(size_t n, size_t k){
     }
 
     free_strv(lineas);
-    counting_filter_destruir(filter);
+    count_min_sketch_destruir(filter);
     heap_destruir(heap, free);
 
     return 0;

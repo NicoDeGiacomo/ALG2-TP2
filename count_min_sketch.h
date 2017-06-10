@@ -10,24 +10,23 @@ struct count_min_sketch;
 typedef struct count_min_sketch count_min_sketch_t;
 
 //Primitivas:
-//TODO: MODIFICAR TODOS LOS NOMBRES A count_min_sketch FORMAT
 
 //Crea un CountingFilet
-count_min_sketch_t* counting_filter_crear();
+count_min_sketch_t* count_min_sketch_crear();
 
 //Borra un CountingFilet
-void counting_filter_destruir(count_min_sketch_t* counting_filter);
+void count_min_sketch_destruir(count_min_sketch_t* count_min_sketch);
 
 //Aumentar filtro -> Aumenta en 1 el filtro
-void counting_filter_aumentar(count_min_sketch_t* counting_filter, const char* key);
+void count_min_sketch_aumentar(count_min_sketch_t* count_min_sketch, const char* key);
 
 //Ver valor del filtro -> Devuelve el valor minimo de los x arrays para el filtro
-size_t counting_filter_obtener(count_min_sketch_t* counting_filter, const char* key);
+size_t count_min_sketch_obtener(count_min_sketch_t* count_min_sketch, const char* key);
 
 //Pone el filtro en cero
-void counting_filter_reiniciar(count_min_sketch_t* counting_filter, const char* key);
+void count_min_sketch_reiniciar(count_min_sketch_t* count_min_sketch, const char* key);
 
 //Aumentar filtros -> Aumenta en 1 todos los filtros
-void counting_filter_aumentar_arr(count_min_sketch_t* counting_filter, const char** key, size_t size);
+void count_min_sketch_aumentar_arr(count_min_sketch_t* count_min_sketch, const char** key, size_t size);
 
 #endif // COUNTINGFILTERS_H

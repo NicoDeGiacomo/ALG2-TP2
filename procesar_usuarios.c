@@ -4,8 +4,6 @@
 #include "abb.h"
 #include "lista.h"
 
-#define SEPARADOR ','
-
 int intcmp(const char *c, const char *d) {
     int a = atoi(c);
     int b = atoi(d);
@@ -33,18 +31,18 @@ char* parsear_usuario(char* linea, char sep) {
 }
 
 bool imprimir_usuarios(abb_t *abb) {
-    abb_iter_t* hash_iter = abb_iter_in_crear(abb);
-    if(!hash_iter)
+    abb_iter_t* abb_iter = abb_iter_in_crear(abb);
+    if(!abb_iter)
         return false;
 
-    while (!abb_iter_in_al_final(hash_iter)){
-        char* key = (char *) abb_iter_in_ver_actual(hash_iter);
+    while (!abb_iter_in_al_final(abb_iter)){
+        char* key = (char *) abb_iter_in_ver_actual(abb_iter);
         printf("%s: ", key);
 
         lista_t* lista = abb_obtener(abb, key);
         lista_iter_t* lista_iter = lista_iter_crear(lista);
         if(!lista_iter){
-            abb_iter_in_destruir(hash_iter);
+            abb_iter_in_destruir(abb_iter);
             return false;
         }
 
@@ -56,10 +54,11 @@ bool imprimir_usuarios(abb_t *abb) {
         }
         printf("\n");
         lista_iter_destruir(lista_iter);
+        lista_destruir(lista, NULL);
 
-        abb_iter_in_avanzar(hash_iter);
+        abb_iter_in_avanzar(abb_iter);
     }
-	abb_iter_in_destruir(hash_iter);
+	abb_iter_in_destruir(abb_iter);
 
 	return true;
 }
@@ -72,6 +71,10 @@ size_t contar_tags(char* str, char sep) {
     return cant_sep;
 }
 
+void lista_destruir_aux(void* lista) {
+    lista_destruir((lista_t*) lista, NULL);
+}
+
 int procesar_usuarios(const char* name){
 	
 	FILE* file = fopen(name, "r");
@@ -80,8 +83,8 @@ int procesar_usuarios(const char* name){
 		return 1;
 	}
 
-    abb_t* hash = abb_crear(intcmp, NULL);
-	if (!hash){
+    abb_t* abb = abb_crear(intcmp, lista_destruir_aux);
+	if (!abb){
         fclose(file);
         fprintf(stderr, "Unexpected error.\n");
 		return 1;
@@ -89,7 +92,7 @@ int procesar_usuarios(const char* name){
 
     char** lineas = obtener_lineas(file, 0, NULL);
 	if(!lineas) {
-		abb_destruir(hash);
+		abb_destruir(abb);
 		fclose(file);
         fprintf(stderr, "Unexpected error.\n");
 		return 1;
@@ -101,23 +104,32 @@ int procesar_usuarios(const char* name){
         char str[256] = "";
         snprintf(str, sizeof(str), "%zu", n_tags);
 
-        lista_t* lista = abb_obtener(hash, str);
-        if(!lista)
-            lista = lista_crear();//TODO: CASO DE ERROR
+        lista_t* lista = abb_obtener(abb, str);
+        if(!lista){
+            lista = lista_crear();
+            if (!lista){
+                free_strv(lineas);
+                abb_destruir(abb);
+                fclose(file);
+                fprintf(stderr, "Unexpected error.\n");
+                return 1;
+            }
+        }
+
         lista_insertar_ultimo(lista, user);
-        abb_guardar(hash, str, lista);
+        abb_guardar(abb, str, lista);
     }
 
-	if(!imprimir_usuarios(hash)) {
+	if(!imprimir_usuarios(abb)) {
         free_strv(lineas);
-		abb_destruir(hash);
+        abb_destruir(abb);
 		fclose(file);
 		fprintf(stderr, "Unexpected error.\n");
 		return 1;
 	}
 
     free_strv(lineas);
-	abb_destruir(hash);
+	abb_destruir(abb);
 	fclose(file);
 	
     return 0;

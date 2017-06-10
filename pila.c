@@ -6,7 +6,6 @@
 #include <stdlib.h>
 
 #define SIZE 10 //Capacidad inicial de la pila
-//TODO: poner esto como porcentaje y pasar a size_t al multiplicar
 #define REALLOC_WHEN 4 //Porcentage al cual la capacidad de la pila se reduce
 #define REALLOC_TO 2 //Porcentaje de reduccion y ampliacion de la capacidad de la pila
 
