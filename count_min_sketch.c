@@ -76,6 +76,7 @@ void counting_filter_aumentar_arr(count_min_sketch_t* counting_filter, const cha
     for (size_t i = 0; i < size; ++i) {
         counting_filter_aumentar(counting_filter, key[i]);
     }
+    return;
 }
 
 size_t counting_filter_obtener(count_min_sketch_t* counting_filter, const char* key) {
@@ -87,6 +88,13 @@ size_t counting_filter_obtener(count_min_sketch_t* counting_filter, const char* 
     if(two < one && two < three)
         return two;
     return three;
+}
+
+void counting_filter_reiniciar(count_min_sketch_t* counting_filter, const char* key){
+    counting_filter->tabla1[jenkins_hash(key, (size_t) strlen(key))] = 0;
+    counting_filter->tabla2[prime_hash(key)] = 0;
+    counting_filter->tabla3[hash_33(key)] = 0;
+    return;
 }
 
 

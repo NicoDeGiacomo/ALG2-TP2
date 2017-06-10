@@ -5,7 +5,7 @@
 #include "utils.h"
 
 struct filter_result{
-    const char* key;
+    char* key;
     size_t value;
 };
 typedef struct filter_result filter_result_t;
@@ -26,14 +26,20 @@ int filter_result_cmp(const void *a, const void *b) {
 
 filter_result_t *filter_result_crear(const char *key, size_t value) {
     filter_result_t* filter_result = malloc(sizeof(filter_result_t));
-    filter_result->key = key;
+    filter_result->key = malloc(sizeof(char)*strlen(key));
+    strcat(filter_result->key, key);
     filter_result->value = value;
     return filter_result;
 }
 
+void filter_result_destruir(filter_result_t* filter_result){
+    free((void *) filter_result->key);
+    free(filter_result);
+}
+
 void imprimir_tweets(const char *tweet) {
     //TODO: No tengo idea como se debería imprimir esto.
-    printf("%s", tweet);
+    printf("%s\n", tweet);
 }
 
 int procesar_tweets(size_t n, size_t k){
@@ -58,6 +64,7 @@ int procesar_tweets(size_t n, size_t k){
     //TODO: Hay que preguntar/pensar como es que se hace para guardar el historico total + los n actuales (dos filtros distintos ?)
 
 
+    //TODO: n_lineas y n_tags se pueden reemplazar solo checheando si son null ?
     size_t n_encolados = 0;
     for (size_t j = 0; j < n_lineas; ++j) {
         size_t n_tags = 0;
@@ -65,10 +72,13 @@ int procesar_tweets(size_t n, size_t k){
 
         counting_filter_aumentar_arr(filter, (const char **) tags, n_tags);
 
+        //TODO: HAY QUE SACAR LOS REPETIDOS A LA HORA DE ENCOLAR EN EL HEAP -> DESPUES DE PASAR POR EL FILTER
+
         for (size_t i = 0; i < n_tags; ++i) {
 
             if (n_encolados < k){
                 filter_result_t *result = filter_result_crear(tags[i], counting_filter_obtener(filter, tags[i]));
+                counting_filter_reiniciar(filter, tags[i]);
                 if (!result) {
                     counting_filter_destruir(filter);
                     heap_destruir(heap, free);
@@ -99,8 +109,10 @@ int procesar_tweets(size_t n, size_t k){
         free_strv(tags);
     }
 
-    while (heap_esta_vacio(heap)){
-        imprimir_tweets((char *) heap_desencolar(heap));
+    while (!heap_esta_vacio(heap)){
+        filter_result_t* filter_result = heap_desencolar(heap);
+        imprimir_tweets(filter_result->key);
+        filter_result_destruir(filter_result);
     }
 
     free_strv(lineas);

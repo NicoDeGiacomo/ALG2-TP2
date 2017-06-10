@@ -12,5 +12,5 @@ CFLAGS += -Werror
 # compilar una parte del TP solamente.
 
 all: procesar_tweets procesar_usuarios
-procesar_tweets: heap.o counting_filters.o utils.o
+procesar_tweets: heap.o count_min_sketch.o utils.o
 procesar_usuarios: abb.o lista.o utils.o pila.o
