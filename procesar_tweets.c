@@ -58,13 +58,10 @@ int procesar_tweets(size_t n, size_t k){
     //TODO: Hay que preguntar/pensar como es que se hace para guardar el historico total + los n actuales (dos filtros distintos ?)
 
 
+    size_t n_encolados = 0;
     for (size_t j = 0; j < n_lineas; ++j) {
         size_t n_tags = 0;
         char **tags = split(lineas[j], ',', &n_tags);
-
-
-
-        size_t n_encolados = 0;
 
         counting_filter_aumentar_arr(filter, (const char **) tags, n_tags);
 
@@ -100,6 +97,10 @@ int procesar_tweets(size_t n, size_t k){
         }
 
         free_strv(tags);
+    }
+
+    while (heap_esta_vacio(heap)){
+        imprimir_tweets((char *) heap_desencolar(heap));
     }
 
     free_strv(lineas);
