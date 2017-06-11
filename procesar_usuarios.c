@@ -70,10 +70,6 @@ size_t contar_tags(char* str, char sep) {
     return cant_sep;
 }
 
-void lista_destruir_aux(void* lista) {
-    lista_destruir((lista_t*) lista, NULL);
-}
-
 int procesar_usuarios(const char* name){
 	
 	FILE* file = fopen(name, "r");
@@ -82,7 +78,7 @@ int procesar_usuarios(const char* name){
 		return 1;
 	}
 
-    abb_t* abb = abb_crear(cmp, lista_destruir_aux);
+    abb_t* abb = abb_crear(cmp, NULL);
 	if (!abb){
         fclose(file);
         fprintf(stderr, "Unexpected error.\n");
@@ -100,11 +96,14 @@ int procesar_usuarios(const char* name){
     for (int i = 0; lineas[i] != NULL ; ++i) {
         char* user = parsear_usuario(lineas[i], SEPARADOR);
         size_t n_tags = contar_tags(lineas[i], SEPARADOR);
+
         char str[256] = "";
         snprintf(str, sizeof(str), "%zu", n_tags);
 
-        lista_t* lista = abb_obtener(abb, str);
-        if(!lista){
+        lista_t* lista;
+        if(abb_pertenece(abb, str))
+            lista = (lista_t*)abb_borrar(abb, str);
+        else{
             lista = lista_crear();
             if (!lista){
                 free_strv(lineas);
@@ -115,23 +114,19 @@ int procesar_usuarios(const char* name){
             }
         }
 
-        lista_insertar_ultimo(lista, user);
+        lista_insertar_primero(lista, user);
         abb_guardar(abb, str, (void*) lista);
     }
 
-	if(!imprimir_usuarios(abb)) {
-        free_strv(lineas);
-        abb_destruir(abb);
-		fclose(file);
-		fprintf(stderr, "Unexpected error.\n");
-		return 1;
-	}
+	bool exit = imprimir_usuarios(abb);
+    if (!exit)
+        fprintf(stderr, "Unexpected error.\n");
 
     free_strv(lineas);
-	abb_destruir(abb);
-	fclose(file);
+    abb_destruir(abb);
+    fclose(file);
 	
-    return 0;
+    return exit;
 
 }
 
