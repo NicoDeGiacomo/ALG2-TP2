@@ -1,17 +1,7 @@
 #include <stdio.h>
 #include "utils.h"
-#include "abb.h"
 #include "lista.h"
-
-int cmp(const char *c, const char *d) {
-    int a = atoi(c);
-    int b = atoi(d);
-    if( a <  b)
-        return -1;
-    else if( a > b)
-        return 1;
-    return 0;
-}
+#include "hash.h"
 
 char* parsear_usuario(char* linea, char sep) {
 	char* buffer = malloc(strlen(linea));
@@ -29,20 +19,19 @@ char* parsear_usuario(char* linea, char sep) {
     return buffer;
 }
 
-bool imprimir_usuarios(abb_t *abb) {
-    abb_iter_t* abb_iter = abb_iter_in_crear(abb);
-    if(!abb_iter)
-        return false;
+int imprimir_usuarios(hash_t *hash, size_t max) {
+    for (size_t i = 0; i <= max; ++i) {
+        char str[256] = "";
+        snprintf(str, sizeof(str), "%zu", i);
 
-    while (!abb_iter_in_al_final(abb_iter)){
-        char* key = (char *) abb_iter_in_ver_actual(abb_iter);
-        printf("%s: ", key);
+        if (!hash_pertenece(hash, str))
+            continue;
 
-        lista_t* lista = abb_obtener(abb, key);
+        lista_t* lista = hash_obtener(hash, str);
+
         lista_iter_t* lista_iter = lista_iter_crear(lista);
         if(!lista_iter){
-            abb_iter_in_destruir(abb_iter);
-            return false;
+            return 1;
         }
 
         while (!lista_iter_al_final(lista_iter)){
@@ -54,12 +43,8 @@ bool imprimir_usuarios(abb_t *abb) {
         printf("\n");
         lista_iter_destruir(lista_iter);
         lista_destruir(lista, NULL);
-
-        abb_iter_in_avanzar(abb_iter);
     }
-	abb_iter_in_destruir(abb_iter);
-
-	return true;
+	return 0;
 }
 
 size_t contar_tags(char* str, char sep) {
@@ -70,6 +55,69 @@ size_t contar_tags(char* str, char sep) {
     return cant_sep;
 }
 
+hash_t *obtener_hash(char **lineas, size_t tam, size_t *max) {
+    size_t max_n_tags = 0;
+
+    hash_t* hash = hash_crear(NULL);
+    if (!hash)
+        return NULL;
+
+    for (size_t i = 0; i < tam; ++i) {
+        char* user = parsear_usuario(lineas[i], SEPARADOR);
+        size_t n_tags = contar_tags(lineas[i], SEPARADOR);
+
+        if(hash_pertenece(hash, user)) {
+            size_t tmp = *((size_t *)hash_borrar(hash, user));
+            n_tags += tmp;
+        }
+        if (n_tags > max_n_tags)
+            max_n_tags = n_tags;
+
+        char str[256] = "";
+        snprintf(str, sizeof(str), "%zu", n_tags);
+        hash_guardar(hash, user, &str);
+    }
+
+    *max = max_n_tags;
+    return hash;
+}
+
+hash_t* invertir_hash(hash_t *hash) {
+    //TODO: aca va NULL para destruir ?!
+    hash_t* new_hash = hash_crear(NULL);
+    if(!hash)
+        return NULL;
+
+    hash_iter_t* iter = hash_iter_crear(hash);
+    if(!iter)
+        return NULL;
+
+    while (!hash_iter_al_final(iter)){
+        char* user = (char *) hash_iter_ver_actual(iter);
+        size_t cant = *((size_t*)hash_obtener(hash, user));
+
+        char str[256] = "";
+        snprintf(str, sizeof(str), "%zu", cant);
+
+        lista_t* lista;
+        if(hash_pertenece(new_hash, str)){
+            lista = hash_obtener(new_hash, str);
+        }else{
+            lista = lista_crear();
+            if(!lista){
+                free(new_hash);
+                free(iter);
+                return NULL;
+            }
+        }
+        lista_insertar_ultimo(lista, user);
+    }
+
+    hash_iter_destruir(iter);
+    hash_destruir(hash);
+    return new_hash;
+}
+
 int procesar_usuarios(const char* name){
 	
 	FILE* file = fopen(name, "r");
@@ -78,52 +126,26 @@ int procesar_usuarios(const char* name){
 		return 1;
 	}
 
-    abb_t* abb = abb_crear(cmp, NULL);
-	if (!abb){
-        fclose(file);
-        fprintf(stderr, "Unexpected error.\n");
-		return 1;
-	}
-
-    char** lineas = obtener_lineas(file, 0, NULL);
+    size_t n_lineas = 0;
+    char** lineas = obtener_lineas(file, 0, &n_lineas);
 	if(!lineas) {
-		abb_destruir(abb);
 		fclose(file);
         fprintf(stderr, "Unexpected error.\n");
 		return 1;
 	}
 
-    for (int i = 0; lineas[i] != NULL ; ++i) {
-        char* user = parsear_usuario(lineas[i], SEPARADOR);
-        size_t n_tags = contar_tags(lineas[i], SEPARADOR);
+    //TODO: CASO DE ERROR
+    size_t max;
+    hash_t* hash = obtener_hash(lineas, n_lineas, &max);
 
-        char str[256] = "";
-        snprintf(str, sizeof(str), "%zu", n_tags);
+    invertir_hash(hash);
 
-        lista_t* lista;
-        if(abb_pertenece(abb, str))
-            lista = (lista_t*)abb_borrar(abb, str);
-        else{
-            lista = lista_crear();
-            if (!lista){
-                free_strv(lineas);
-                abb_destruir(abb);
-                fclose(file);
-                fprintf(stderr, "Unexpected error.\n");
-                return 1;
-            }
-        }
-
-        lista_insertar_primero(lista, user);
-        abb_guardar(abb, str, (void*) lista);
-    }
-
-	bool exit = imprimir_usuarios(abb);
-    if (!exit)
+	int exit = imprimir_usuarios(hash, max);
+    if (exit)
         fprintf(stderr, "Unexpected error.\n");
 
     free_strv(lineas);
-    abb_destruir(abb);
+    //TODO destruir hash
     fclose(file);
 	
     return exit;

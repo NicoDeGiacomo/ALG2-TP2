@@ -11,4 +11,4 @@ void free_strv(char *strv[]);
 //Obtiene n lineas del archivo (para si llegó al eof).
 //Si n es NULL lee el archivo completo.
 //Devuelve un array (dinamically allocated) terminado en NULL con las lineas (dynamically allocated) en forma de string.
-char **obtener_lineas(FILE *file, size_t n, size_t *pInt);
+char **obtener_lineas(FILE *file, size_t n, size_t *cant);
