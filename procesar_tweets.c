@@ -65,6 +65,7 @@ bool eliminar_repetidos(char **arr, size_t* tam) {
 
     size_t cont = 0;
     while (!hash_iter_al_final(iter)){
+        arr[cont] = realloc(arr[cont], sizeof(char)*(strlen((char *) hash_iter_ver_actual(iter)) + 1));
         strcpy(arr[cont], (char *) hash_iter_ver_actual(iter));
         cont++;
         hash_iter_avanzar(iter);
@@ -130,7 +131,7 @@ int procesar_tweets(size_t n, size_t k){
                 heap_encolar(heap, result);
 
             }else{
-                if (filter_result_cmp(tags[i], heap_ver_max(heap)) == -1) {
+                if (count_min_sketch_obtener(filter, tags[i]) > ((filter_result_t*)heap_ver_max(heap))->value) {
                     free(heap_desencolar(heap));
 
                     filter_result_t *result = filter_result_crear(tags[i], count_min_sketch_obtener(filter, tags[i]));
