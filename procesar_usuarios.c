@@ -27,6 +27,8 @@ int imprimir_usuarios(hash_t *hash, size_t max) {
         if (!hash_pertenece(hash, str))
             continue;
 
+        printf("%s: ", str);
+
         lista_t* lista = hash_obtener(hash, str);
 
         lista_iter_t* lista_iter = lista_iter_crear(lista);
@@ -58,24 +60,23 @@ size_t contar_tags(char* str, char sep) {
 hash_t *obtener_hash(char **lineas, size_t tam, size_t *max) {
     size_t max_n_tags = 0;
 
-    hash_t* hash = hash_crear(NULL);
+    hash_t* hash = hash_crear(free);
     if (!hash)
         return NULL;
 
     for (size_t i = 0; i < tam; ++i) {
         char* user = parsear_usuario(lineas[i], SEPARADOR);
-        size_t n_tags = contar_tags(lineas[i], SEPARADOR);
+        size_t* n_tags = malloc(sizeof(size_t));
+        *n_tags = contar_tags(lineas[i], SEPARADOR);
 
         if(hash_pertenece(hash, user)) {
-            size_t tmp = *((size_t *)hash_borrar(hash, user));
-            n_tags += tmp;
+            size_t tmp = *(size_t*) hash_obtener(hash, user);
+            *n_tags += tmp;
         }
-        if (n_tags > max_n_tags)
-            max_n_tags = n_tags;
+        if (*n_tags > max_n_tags)
+            max_n_tags = *n_tags;
 
-        char str[256] = "";
-        snprintf(str, sizeof(str), "%zu", n_tags);
-        hash_guardar(hash, user, &str);
+        hash_guardar(hash, user, n_tags);
     }
 
     *max = max_n_tags;
@@ -94,7 +95,7 @@ hash_t* invertir_hash(hash_t *hash) {
 
     while (!hash_iter_al_final(iter)){
         char* user = (char *) hash_iter_ver_actual(iter);
-        size_t cant = *((size_t*)hash_obtener(hash, user));
+        size_t cant = *(size_t*)hash_obtener(hash, user);
 
         char str[256] = "";
         snprintf(str, sizeof(str), "%zu", cant);
@@ -111,6 +112,8 @@ hash_t* invertir_hash(hash_t *hash) {
             }
         }
         lista_insertar_ultimo(lista, user);
+        hash_guardar(new_hash, str, lista);
+        hash_iter_avanzar(iter);
     }
 
     hash_iter_destruir(iter);
@@ -138,7 +141,7 @@ int procesar_usuarios(const char* name){
     size_t max;
     hash_t* hash = obtener_hash(lineas, n_lineas, &max);
 
-    invertir_hash(hash);
+    hash = invertir_hash(hash);
 
 	int exit = imprimir_usuarios(hash, max);
     if (exit)
