@@ -40,7 +40,6 @@ void filter_result_destruir(filter_result_t* filter_result){
 }
 
 void imprimir_tweets(const char *tweet) {
-    //TODO: No tengo idea como se debería imprimir esto.
     printf("%s\n", tweet);
 }
 
@@ -139,7 +138,6 @@ int procesar_tweets(size_t n, size_t k){
 int main(int argc, char const *argv[]){
     freopen("tweets_head.txt","r",stdin);
     if (argc != 3){
-        //TODO: Checkear que n y k sean numeros enteros positivos distintos de cero
         fprintf(stderr, "Usage: ./procesar_tweets <n> <k>\n");
         return 1;
     }
