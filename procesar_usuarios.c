@@ -1,10 +1,9 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include "utils.h"
 #include "abb.h"
 #include "lista.h"
 
-int intcmp(const char *c, const char *d) {
+int cmp(const char *c, const char *d) {
     int a = atoi(c);
     int b = atoi(d);
     if( a <  b)
@@ -83,7 +82,7 @@ int procesar_usuarios(const char* name){
 		return 1;
 	}
 
-    abb_t* abb = abb_crear(intcmp, lista_destruir_aux);
+    abb_t* abb = abb_crear(cmp, lista_destruir_aux);
 	if (!abb){
         fclose(file);
         fprintf(stderr, "Unexpected error.\n");
@@ -117,7 +116,7 @@ int procesar_usuarios(const char* name){
         }
 
         lista_insertar_ultimo(lista, user);
-        abb_guardar(abb, str, lista);
+        abb_guardar(abb, str, (void*) lista);
     }
 
 	if(!imprimir_usuarios(abb)) {
