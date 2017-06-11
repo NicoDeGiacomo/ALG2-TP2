@@ -59,9 +59,10 @@ void free_strv(char *strv[]){
 //Cant es la cantidad de lineas leidas
 char **obtener_lineas(FILE *file, size_t n, size_t *cant) {
 
-    char** var = malloc(sizeof(char*) * (n + 1));
+    size_t var_size = 100;
+    char** var = malloc(sizeof(char*) * (var_size));
 
-    for (size_t i = 0; (!n)||!feof(file)||(i < n); ++i) {
+    for (size_t i = 0; (!n)||(i < n); ++i) {
 
         size_t size = 100;
         char *str = malloc(sizeof(char)*size);
@@ -76,16 +77,19 @@ char **obtener_lineas(FILE *file, size_t n, size_t *cant) {
             break;
         }
         while(ch != '\n'){
-            str[len]= (char) ch;
-            len++;
             if(len==size){
                 str = realloc(str, sizeof(char)*(size+=size));
                 if(!str)
                     return NULL;
             }
+            str[len]= (char) ch;
+            len++;
             ch=fgetc(file);
         }
         str[len]='\0';
+        if (i == var_size){
+            var = realloc(var, sizeof(char)*(var_size+=var_size));
+        }
         var[i] = str;
     }
 

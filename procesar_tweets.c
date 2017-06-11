@@ -28,8 +28,8 @@ int filter_result_cmp(const void *a, const void *b) {
 
 filter_result_t *filter_result_crear(const char *key, size_t value) {
     filter_result_t* filter_result = malloc(sizeof(filter_result_t));
-    filter_result->key = malloc(sizeof(char)*strlen(key));
-    strcat(filter_result->key, key);
+    filter_result->key = calloc(strlen(key)+1, sizeof(char));
+    strcpy(filter_result->key, key);
     filter_result->value = value;
     return filter_result;
 }
@@ -45,7 +45,7 @@ void imprimir_tweets(const char *tweet) {
 }
 
 void left_shift(char **arr, size_t* tam) {
-    for (int k = 0; k >= *tam-1; k--){
+    for (size_t k = 0; k <= *tam-1; k++){
         arr[k] = arr[k+1];
     }
     *tam=*tam-1;
@@ -65,7 +65,7 @@ bool eliminar_repetidos(char **arr, size_t* tam) {
 
     size_t cont = 0;
     while (!hash_iter_al_final(iter)){
-        arr[cont] = (char *) hash_iter_ver_actual(iter);
+        strcpy(arr[cont], (char *) hash_iter_ver_actual(iter));
         cont++;
         hash_iter_avanzar(iter);
     }
@@ -73,7 +73,7 @@ bool eliminar_repetidos(char **arr, size_t* tam) {
     hash_iter_destruir(iter);
     hash_destruir(hash);
 
-    *tam = cont+1;
+    *tam = cont;
     return true;
 }
 
@@ -93,8 +93,6 @@ int procesar_tweets(size_t n, size_t k){
 		fprintf(stderr, "Unexpected error.\n");
         return 1;
 	}
-	
-	//TODO: ESTA CONTANDO AL USUARIO COMO OTRO TAG
 
     size_t n_encolados = 0;
     for (size_t j = 0; j < n_lineas; ++j) {
@@ -114,8 +112,6 @@ int procesar_tweets(size_t n, size_t k){
             fprintf(stderr, "Unexpected error.\n");
             return 1;
         }
-
-        //TODO: HAY QUE SACAR LOS REPETIDOS A LA HORA DE ENCOLAR EN EL HEAP -> DESPUES DE PASAR POR EL FILTER
 
         for (size_t i = 0; i < n_tags; ++i) {
 
