@@ -87,8 +87,8 @@ char **obtener_lineas(FILE *file, size_t n, size_t *cant) {
             ch=fgetc(file);
         }
         str[len]='\0';
-        if (i == var_size){
-            var = realloc(var, sizeof(char)*(var_size+=var_size));
+        if (i == var_size-1){
+            var = realloc(var, sizeof(char*)*(var_size+=var_size));
         }
         var[i] = str;
     }
