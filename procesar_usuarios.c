@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "utils.h"
 #include "lista.h"
 #include "hash.h"
@@ -22,7 +23,7 @@ char* parsear_usuario(char* linea, char sep) {
 int imprimir_usuarios(hash_t *hash, size_t max) {
     for (size_t i = 0; i <= max; ++i) {
         char str[256] = "";
-        snprintf(str, sizeof(str), "%zu", i);
+        snprintf(str, sizeof(str), "%u", i);
 
         if (!hash_pertenece(hash, str))
             continue;
@@ -44,7 +45,7 @@ int imprimir_usuarios(hash_t *hash, size_t max) {
         }
         printf("\n");
         lista_iter_destruir(lista_iter);
-        lista_destruir(lista, NULL);
+        lista_destruir(lista, free);
     }
 	return 0;
 }
@@ -84,7 +85,6 @@ hash_t *obtener_hash(char **lineas, size_t tam, size_t *max) {
 }
 
 hash_t* invertir_hash(hash_t *hash) {
-    //TODO: aca va NULL para destruir ?!
     hash_t* new_hash = hash_crear(NULL);
     if(!hash)
         return NULL;
@@ -93,13 +93,14 @@ hash_t* invertir_hash(hash_t *hash) {
     if(!iter)
         return NULL;
 
+	//TODO: Hay que liberar los users viejos. Estamos haciendo otro malloc y descartando el anterior.
     while (!hash_iter_al_final(iter)){
         char* user = malloc(sizeof(char)*(strlen((char *) hash_iter_ver_actual(iter)))+1);
         strcpy(user, (char *) hash_iter_ver_actual(iter));
         size_t cant = *(size_t*)hash_obtener(hash, user);
 
         char str[256] = "";
-        snprintf(str, sizeof(str), "%zu", cant);
+        snprintf(str, sizeof(str), "%u", cant);
 
         lista_t* lista;
         if(hash_pertenece(new_hash, str)){
@@ -107,7 +108,7 @@ hash_t* invertir_hash(hash_t *hash) {
         }else{
             lista = lista_crear();
             if(!lista){
-                free(new_hash);
+                hash_destruir(new_hash);
                 free(iter);
                 return NULL;
             }
@@ -116,7 +117,7 @@ hash_t* invertir_hash(hash_t *hash) {
         hash_guardar(new_hash, str, lista);
         hash_iter_avanzar(iter);
     }
-
+	
     hash_iter_destruir(iter);
     hash_destruir(hash);
     return new_hash;
@@ -138,9 +139,14 @@ int procesar_usuarios(const char* name){
 		return 1;
 	}
 
-    //TODO: CASO DE ERROR
     size_t max;
     hash_t* hash = obtener_hash(lineas, n_lineas, &max);
+	if(!hash) {
+		free(lineas);
+		fclose(file);
+        fprintf(stderr, "Unexpected error.\n");
+		return 1;
+	}
 
     hash = invertir_hash(hash);
 
@@ -149,7 +155,7 @@ int procesar_usuarios(const char* name){
         fprintf(stderr, "Unexpected error.\n");
 
     free_strv(lineas);
-    //TODO destruir hash
+	hash_destruir(hash);
     fclose(file);
 	
     return exit;
