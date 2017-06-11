@@ -94,7 +94,8 @@ hash_t* invertir_hash(hash_t *hash) {
         return NULL;
 
     while (!hash_iter_al_final(iter)){
-        char* user = (char *) hash_iter_ver_actual(iter);
+        char* user = malloc(sizeof(char)*(strlen((char *) hash_iter_ver_actual(iter)))+1);
+        strcpy(user, (char *) hash_iter_ver_actual(iter));
         size_t cant = *(size_t*)hash_obtener(hash, user);
 
         char str[256] = "";
