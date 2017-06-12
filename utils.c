@@ -42,7 +42,7 @@ char **split(char *str, int sep, size_t *tam) {
     return strv;
 }
 
-void free_strv(char *strv[]){
+void free_strv(char **strv) {
     int count = 0;
     char* a = strv[count];
     while (a){
@@ -59,15 +59,10 @@ void free_strv(char *strv[]){
 //Cant es la cantidad de lineas leidas
 char **obtener_lineas(FILE *file, size_t n, size_t *cant) {
 
-    size_t var_size = 100;
+    size_t var_size = 500;
     char** var = malloc(sizeof(char*) * (var_size));
 
     for (size_t i = 0; (!n)||(i < n); ++i) {
-
-        size_t size = 100;
-        char *str = malloc(sizeof(char)*size);
-        if(!str)
-            return NULL;
 
         size_t len = 0;
         int ch=fgetc(file);
@@ -77,6 +72,12 @@ char **obtener_lineas(FILE *file, size_t n, size_t *cant) {
                 n = i;
             break;
         }
+
+        size_t size = 100;
+        char *str = malloc(sizeof(char)*size);
+        if(!str)
+            return NULL;
+
         while(ch != '\n'){
             if(len==size){
                 str = realloc(str, sizeof(char)*(size+=size));
@@ -88,7 +89,7 @@ char **obtener_lineas(FILE *file, size_t n, size_t *cant) {
             ch=fgetc(file);
         }
         str[len]='\0';
-        if (i == var_size-1){
+        if (i == var_size){
             var = realloc(var, sizeof(char*)*(var_size+=var_size));
         }
         var[i] = str;

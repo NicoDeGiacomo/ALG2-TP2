@@ -23,7 +23,7 @@ char* parsear_usuario(char* linea, char sep) {
 int imprimir_usuarios(hash_t *hash, size_t max) {
     for (size_t i = 0; i <= max; ++i) {
         char str[256] = "";
-        snprintf(str, sizeof(str), "%u", i);
+        snprintf(str, sizeof(str), "%zu", i);
 
         if (!hash_pertenece(hash, str))
             continue;
@@ -78,6 +78,7 @@ hash_t *obtener_hash(char **lineas, size_t tam, size_t *max) {
             max_n_tags = *n_tags;
 
         hash_guardar(hash, user, n_tags);
+        free(user);
     }
 
     *max = max_n_tags;
@@ -97,10 +98,13 @@ hash_t* invertir_hash(hash_t *hash) {
     while (!hash_iter_al_final(iter)){
         char* user = malloc(sizeof(char)*(strlen((char *) hash_iter_ver_actual(iter)))+1);
         strcpy(user, (char *) hash_iter_ver_actual(iter));
+
+        //char* user = (char *) hash_iter_ver_actual(iter);
+
         size_t cant = *(size_t*)hash_obtener(hash, user);
 
         char str[256] = "";
-        snprintf(str, sizeof(str), "%u", cant);
+        snprintf(str, sizeof(str), "%zu", cant);
 
         lista_t* lista;
         if(hash_pertenece(new_hash, str)){
@@ -142,7 +146,7 @@ int procesar_usuarios(const char* name){
     size_t max;
     hash_t* hash = obtener_hash(lineas, n_lineas, &max);
 	if(!hash) {
-		free(lineas);
+        free_strv(lineas);
 		fclose(file);
         fprintf(stderr, "Unexpected error.\n");
 		return 1;

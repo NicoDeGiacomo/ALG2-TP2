@@ -6,7 +6,7 @@
 
 char **split(char *str, int sep, size_t *pInt);
 
-void free_strv(char *strv[]);
+void free_strv(char **strv);
 
 //Obtiene n lineas del archivo (para si llegó al eof).
 //Si n es NULL lee el archivo completo.

@@ -34,7 +34,8 @@ filter_result_t *filter_result_crear(const char *key, size_t value) {
     return filter_result;
 }
 
-void filter_result_destruir(filter_result_t* filter_result){
+void filter_result_destruir(void* e){
+    filter_result_t* filter_result = e;
     free((void *) filter_result->key);
     free(filter_result);
 }
@@ -62,7 +63,7 @@ int procesar_tweets(size_t n, size_t k){
 
     hash_t* encolados = hash_crear(NULL);
     if(!encolados) {
-        heap_destruir(heap, NULL);
+        heap_destruir(heap, filter_result_destruir);
         count_min_sketch_destruir(filter);
         fprintf(stderr, "Unexpected error.\n");
         return 1;
@@ -88,8 +89,9 @@ int procesar_tweets(size_t n, size_t k){
                 filter_result_t *result = filter_result_crear(tags[i], count_min_sketch_obtener(filter, tags[i]));
                 //count_min_sketch_reiniciar(filter, tags[i]);
                 if (!result) {
+                    hash_destruir(encolados);
                     count_min_sketch_destruir(filter);
-                    heap_destruir(heap, free);
+                    heap_destruir(heap, filter_result_destruir);
                     free_strv(lineas);
                     fprintf(stderr, "Unexpected error.\n");
                     return 1;
@@ -101,13 +103,14 @@ int procesar_tweets(size_t n, size_t k){
 
             }else{
                 if (count_min_sketch_obtener(filter, tags[i]) > ((filter_result_t*)heap_ver_max(heap))->value) {
-                    free(heap_desencolar(heap));
+                    filter_result_destruir(heap_desencolar(heap));
 
                     filter_result_t *result = filter_result_crear(tags[i], count_min_sketch_obtener(filter, tags[i]));
                     if (!result) {
+                        hash_destruir(encolados);
                         free_strv(lineas);
                         count_min_sketch_destruir(filter);
-                        heap_destruir(heap, free);
+                        heap_destruir(heap, filter_result_destruir);
                         free_strv(lineas);
                         fprintf(stderr, "Unexpected error.\n");
                         return 1;
@@ -130,13 +133,14 @@ int procesar_tweets(size_t n, size_t k){
 
     free_strv(lineas);
     count_min_sketch_destruir(filter);
-    heap_destruir(heap, free);
+    heap_destruir(heap, filter_result_destruir);
+    hash_destruir(encolados);
 
     return 0;
 }
 
 int main(int argc, char const *argv[]){
-    freopen("tweets_head.txt","r",stdin);
+    //freopen("tweets_head.txt","r",stdin);
     if (argc != 3){
         fprintf(stderr, "Usage: ./procesar_tweets <n> <k>\n");
         return 1;
