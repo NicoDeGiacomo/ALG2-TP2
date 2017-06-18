@@ -67,9 +67,7 @@ char **obtener_lineas(FILE *file, size_t n, size_t *cant) {
         size_t len = 0;
         int ch=fgetc(file);
         if(ch == EOF){
-            if (!n)
-				printf("");
-                n = i;
+            n = i;
             break;
         }
 

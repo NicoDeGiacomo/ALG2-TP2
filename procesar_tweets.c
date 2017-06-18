@@ -46,7 +46,6 @@ void imprimir_tweets(const char *tweet) {
 
 int procesar_tweets(size_t n, size_t k){
     size_t n_lineas = 0;
-    char** lineas = obtener_lineas(stdin, n, &n_lineas);
 
     count_min_sketch_t* filter = count_min_sketch_crear();
     if (!filter){
@@ -54,61 +53,47 @@ int procesar_tweets(size_t n, size_t k){
         return 1;
     }
 
-    heap_t* heap = heap_crear(filter_result_cmp);
-	if(!heap) {
-		count_min_sketch_destruir(filter);
-		fprintf(stderr, "Unexpected error.\n");
-        return 1;
-	}
+    do{
+        printf("---------\n");
+        char** lineas = obtener_lineas(stdin, n, &n_lineas);
+        if(!lineas)
+            break;
 
-    hash_t* encolados = hash_crear(NULL);
-    if(!encolados) {
-        heap_destruir(heap, filter_result_destruir);
-        count_min_sketch_destruir(filter);
-        fprintf(stderr, "Unexpected error.\n");
-        return 1;
-    }
+        heap_t* heap = heap_crear(filter_result_cmp);
+        if(!heap) {
+            count_min_sketch_destruir(filter);
+            fprintf(stderr, "Unexpected error.\n");
+            return 1;
+        }
+
+        hash_t* encolados = hash_crear(NULL);
+        if(!encolados) {
+            heap_destruir(heap, filter_result_destruir);
+            count_min_sketch_destruir(filter);
+            fprintf(stderr, "Unexpected error.\n");
+            return 1;
+        }
 
 
-    size_t n_encolados = 0;
-    for (size_t j = 0; j < n_lineas; ++j) {
-        size_t n_tags = 0;
-        char **tags = split(lineas[j], SEPARADOR, &n_tags);
+        size_t n_encolados = 0;
+        for (size_t j = 0; j < n_lineas; ++j) {
+            size_t n_tags = 0;
+            char **tags = split(lineas[j], SEPARADOR, &n_tags);
 
-        //Ignoro el usuario
-        hash_guardar(encolados, tags[0], NULL);
+            //Ignoro el usuario
+            hash_guardar(encolados, tags[0], NULL);
 
-        count_min_sketch_aumentar_arr(filter, (const char **) tags, n_tags);
+            count_min_sketch_aumentar_arr(filter, (const char **) tags, n_tags);
 
-        for (size_t i = 0; i < n_tags; ++i) {
-            if (hash_pertenece(encolados, tags[i])){
-                continue;
-            }
-
-            if (n_encolados < k){
-                filter_result_t *result = filter_result_crear(tags[i], count_min_sketch_obtener(filter, tags[i]));
-                //count_min_sketch_reiniciar(filter, tags[i]);
-                if (!result) {
-                    hash_destruir(encolados);
-                    count_min_sketch_destruir(filter);
-                    heap_destruir(heap, filter_result_destruir);
-                    free_strv(lineas);
-                    fprintf(stderr, "Unexpected error.\n");
-                    return 1;
+            for (size_t i = 0; i < n_tags; ++i) {
+                if (hash_pertenece(encolados, tags[i])){
+                    continue;
                 }
 
-                hash_guardar(encolados, result->key, NULL);
-                n_encolados++;
-                heap_encolar(heap, result);
-
-            }else{
-                if (count_min_sketch_obtener(filter, tags[i]) > ((filter_result_t*)heap_ver_max(heap))->value) {
-                    filter_result_destruir(heap_desencolar(heap));
-
+                if (n_encolados < k){
                     filter_result_t *result = filter_result_crear(tags[i], count_min_sketch_obtener(filter, tags[i]));
                     if (!result) {
                         hash_destruir(encolados);
-                        free_strv(lineas);
                         count_min_sketch_destruir(filter);
                         heap_destruir(heap, filter_result_destruir);
                         free_strv(lineas);
@@ -117,30 +102,49 @@ int procesar_tweets(size_t n, size_t k){
                     }
 
                     hash_guardar(encolados, result->key, NULL);
+                    n_encolados++;
                     heap_encolar(heap, result);
+
+                }else{
+                    if (count_min_sketch_obtener(filter, tags[i]) > ((filter_result_t*)heap_ver_max(heap))->value) {
+                        filter_result_destruir(heap_desencolar(heap));
+
+                        filter_result_t *result = filter_result_crear(tags[i], count_min_sketch_obtener(filter, tags[i]));
+                        if (!result) {
+                            hash_destruir(encolados);
+                            free_strv(lineas);
+                            count_min_sketch_destruir(filter);
+                            heap_destruir(heap, filter_result_destruir);
+                            fprintf(stderr, "Unexpected error.\n");
+                            return 1;
+                        }
+
+                        hash_guardar(encolados, result->key, NULL);
+                        heap_encolar(heap, result);
+                    }
                 }
             }
+
+            free_strv(tags);
         }
 
-        free_strv(tags);
-    }
+        while (!heap_esta_vacio(heap)){
+            filter_result_t* filter_result = heap_desencolar(heap);
+            imprimir_tweets(filter_result->key);
+            filter_result_destruir(filter_result);
+        }
 
-    while (!heap_esta_vacio(heap)){
-        filter_result_t* filter_result = heap_desencolar(heap);
-        imprimir_tweets(filter_result->key);
-        filter_result_destruir(filter_result);
-    }
+        free_strv(lineas);
+        heap_destruir(heap, filter_result_destruir);
+        hash_destruir(encolados);
+    }while (n_lineas == n);
 
-    free_strv(lineas);
     count_min_sketch_destruir(filter);
-    heap_destruir(heap, filter_result_destruir);
-    hash_destruir(encolados);
 
     return 0;
 }
 
 int main(int argc, char const *argv[]){
-    //freopen("tweets_head.txt","r",stdin);
     if (argc != 3){
         fprintf(stderr, "Usage: ./procesar_tweets <n> <k>\n");
         return 1;

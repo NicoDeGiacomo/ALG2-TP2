@@ -98,4 +98,3 @@ marcvibbert,3rdpersonthursday
 transito,transitosp
 danrichman,charlotte
 akipoo,11
-disneybolin,squarespace
